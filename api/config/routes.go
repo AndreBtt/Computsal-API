@@ -11,14 +11,10 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type dataBase struct {
-	db *sql.DB
-}
-
 /* ---------------- PLAYER ROUTES --------------- */
 
 func (a *App) createPlayer(w http.ResponseWriter, r *http.Request) {
-	var p player.Player
+	var p player.PlayerTable
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&p); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -41,7 +37,7 @@ func (a *App) deletePlayer(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Invalid player ID")
 		return
 	}
-	p := player.Player{ID: playerID}
+	p := player.PlayerTable{ID: playerID}
 
 	if err := p.DeletePlayer(a.DB); err != nil {
 		switch err {
@@ -64,7 +60,7 @@ func (a *App) updatePlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var p player.Player
+	var p player.PlayerTable
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&p); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")

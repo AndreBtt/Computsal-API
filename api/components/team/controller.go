@@ -36,7 +36,7 @@ func (t *Team) GetTeam(db *sql.DB) error {
 }
 
 func GetTeams(db *sql.DB) ([]Team, error) {
-	statement := fmt.Sprintf("SELECT * FROM team")
+	statement := fmt.Sprintf("SELECT id, name, photo, group_number FROM team")
 	rows, err := db.Query(statement)
 	if err != nil {
 		return nil, err
@@ -56,7 +56,7 @@ func GetTeams(db *sql.DB) ([]Team, error) {
 	return teams, nil
 }
 
-func GetPlayers(db *sql.DB, teamName string) ([]player.Player, error) {
+func GetPlayers(db *sql.DB, teamName string) ([]player.PlayerTable, error) {
 	statement := fmt.Sprintf("SELECT * FROM player where fk_player_team = '%s'", teamName)
 	rows, err := db.Query(statement)
 
@@ -66,10 +66,10 @@ func GetPlayers(db *sql.DB, teamName string) ([]player.Player, error) {
 
 	defer rows.Close()
 
-	players := []player.Player{}
+	players := []player.PlayerTable{}
 
 	for rows.Next() {
-		var p player.Player
+		var p player.PlayerTable
 		if err := rows.Scan(&p.ID, &p.Name, &p.Team); err != nil {
 			return nil, err
 		}
