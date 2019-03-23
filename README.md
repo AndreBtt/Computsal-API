@@ -1,3 +1,1 @@
 # Computsal
-
-s

@@ -1,49 +1,85 @@
 package team
 
 import (
+	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"testing"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
+var db *sql.DB
+
 func TestMain(m *testing.M) {
-	fmt.Println("oi")
+	user := "root"
+	password := "andre1995"
+	dbname := "Computsal"
+
+	connectionString := fmt.Sprintf("%s:%s@/%s", user, password, dbname)
+	var err error
+	db, err = sql.Open("mysql", connectionString)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	defer db.Close()
+
 	code := m.Run()
 
 	os.Exit(code)
 }
 
-func TestCreateTeam(t *testing.T) {
+func TestTeamAPI(t *testing.T) {
 
-	fmt.Println("ola")
+	var teamID int
 
-	// a := app.App{}
-	// a.Initialize("root", "andre1995", "Computsal")
-	// defer a.DB.Close()
-	// a.Run(":8080")
+	/* -------------  CREATE TEAM -------------------- */
 
-	// payload := []byte(`{"name":"test team", "photo": "www.url.com.br", "group":1}`)
+	tCreate := Team{Name: "testTeam", PhotoURL: "www.url.com.br", Group: 1}
+	if err := tCreate.CreateTeam(db); err != nil {
+		t.Fatal(err)
+	}
 
-	// req, _ := http.NewRequest("POST", "/team", bytes.NewBuffer(payload))
-	// response := executeRequest(req)
+	if err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&teamID); err != nil {
+		t.Fatal(err)
+	}
 
-	// checkResponseCode(t, http.StatusCreated, response.Code)
+	/* -------------  RETRIVE TEAM ------------------- */
 
-	// var m map[string]interface{}
-	// json.Unmarshal(response.Body.Bytes(), &m)
+	tRetrive := Team{Name: "testTeam"}
+	if err := tRetrive.GetTeam(db); err != nil {
+		t.Fatal(err)
+	}
 
-	// if m["name"] != "test team" {
-	// 	t.Errorf("Expected team name to be 'test team'. Got '%v'", m["name"])
-	// }
+	if tRetrive != tCreate {
+		t.Fatal("Create team different than get team")
+	}
 
-	// if m["photo"] != "www.url.com.br" {
-	// 	t.Errorf("Expected photoUrl to be 'www.url.com.br'. Got '%v'", m["photo"])
-	// }
+	/* -------------  UPDATE TEAM -------------------- */
 
-	// // the group is compared to 1.0 because JSON unmarshaling converts numbers to
-	// // floats, when the target is a map[string]interface{}
-	// if m["group"] != 1.0 {
-	// 	t.Errorf("Expected user group to be '1'. Got '%v'", m["id"])
-	// }
+	tUpdate := tRetrive
+	tUpdate.Name = "testTeamUpdate"
+	if err := tUpdate.UpdateTeam(db, tRetrive.Name); err != nil {
+		t.Fatal(err)
+	}
+
+	/* -------------  RETRIVE UPDATED TEAM ----------- */
+
+	tRetriveUpdate := Team{Name: "testTeamUpdate"}
+	if err := tRetriveUpdate.GetTeam(db); err != nil {
+		t.Fatal(err)
+	}
+
+	if tRetriveUpdate != tUpdate {
+		t.Fatal("Updated team different than get team")
+	}
+
+	/* -------------  DELETE TEAM -------------------- */
+
+	if err := tRetriveUpdate.DeleteTeam(db); err != nil {
+		t.Fatal(err)
+	}
 
 }
