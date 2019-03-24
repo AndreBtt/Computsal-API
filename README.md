@@ -17,7 +17,7 @@
 
 - **Create a player**
     * HTTP Request : ```POST http://api.com/players```
-    * Send player data in the request body, in the follow format 
+    * Send player data in the request body in the follow format 
     ``` 
             {  
 	            Name string 
@@ -41,7 +41,7 @@
 	            Team string
             }
     ```
-    * Even if you want to update just one field, you need to fill all others in order to update player correctly
+    * Even if you want to update just one field you need to fill all others in order to update player correctly
     * http StatusCreated (201) will be sent if the player has been updated correctly
 
 - **Get a player**
