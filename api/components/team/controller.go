@@ -7,7 +7,7 @@ import (
 	player "github.com/AndreBtt/Computsal/api/components/player"
 )
 
-func (t *Team) CreateTeam(db *sql.DB) error {
+func (t *TeamTable) CreateTeam(db *sql.DB) error {
 	statement := fmt.Sprintf("INSERT INTO team(name, photo, group_number) VALUES('%s', '%s', %d)", t.Name, t.PhotoURL, t.Group)
 	if _, err := db.Exec(statement); err != nil {
 		return err
@@ -18,24 +18,24 @@ func (t *Team) CreateTeam(db *sql.DB) error {
 	return nil
 }
 
-func (t *Team) UpdateTeam(db *sql.DB, key string) error {
+func (t *TeamTable) UpdateTeam(db *sql.DB, key string) error {
 	statement := fmt.Sprintf("UPDATE team SET name='%s', photo='%s', group_number=%d WHERE name='%s'", t.Name, t.PhotoURL, t.Group, key)
 	_, err := db.Exec(statement)
 	return err
 }
 
-func (t *Team) DeleteTeam(db *sql.DB) error {
+func (t *TeamTable) DeleteTeam(db *sql.DB) error {
 	statement := fmt.Sprintf("DELETE FROM team WHERE name='%s'", t.Name)
 	_, err := db.Exec(statement)
 	return err
 }
 
-func (t *Team) GetTeam(db *sql.DB) error {
+func (t *TeamTable) GetTeam(db *sql.DB) error {
 	statement := fmt.Sprintf("SELECT id, photo, group_number FROM team WHERE name = '%s'", t.Name)
 	return db.QueryRow(statement).Scan(&t.ID, &t.PhotoURL, &t.Group)
 }
 
-func GetTeams(db *sql.DB) ([]Team, error) {
+func GetTeams(db *sql.DB) ([]TeamTable, error) {
 	statement := fmt.Sprintf("SELECT id, name, photo, group_number FROM team")
 	rows, err := db.Query(statement)
 	if err != nil {
@@ -43,10 +43,10 @@ func GetTeams(db *sql.DB) ([]Team, error) {
 	}
 	defer rows.Close()
 
-	teams := []Team{}
+	teams := []TeamTable{}
 
 	for rows.Next() {
-		var t Team
+		var t TeamTable
 		if err := rows.Scan(&t.ID, &t.Name, &t.PhotoURL, &t.Group); err != nil {
 			return nil, err
 		}

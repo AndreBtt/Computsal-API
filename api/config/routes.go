@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	player "github.com/AndreBtt/Computsal/api/components/player"
+	score "github.com/AndreBtt/Computsal/api/components/score"
 	team "github.com/AndreBtt/Computsal/api/components/team"
 	"github.com/gorilla/mux"
 )
@@ -117,7 +118,7 @@ func (a *App) getPlayer(w http.ResponseWriter, r *http.Request) {
 /* ---------------- TEAM ROUTES ----------------- */
 
 func (a *App) createTeam(w http.ResponseWriter, r *http.Request) {
-	var t team.Team
+	var t team.TeamTable
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&t); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -135,7 +136,7 @@ func (a *App) createTeam(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) deleteTeam(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	t := team.Team{Name: vars["name"]}
+	t := team.TeamTable{Name: vars["name"]}
 
 	if err := t.DeleteTeam(a.DB); err != nil {
 		switch err {
@@ -153,7 +154,7 @@ func (a *App) deleteTeam(w http.ResponseWriter, r *http.Request) {
 func (a *App) updateTeam(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 
-	var t team.Team
+	var t team.TeamTable
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&t); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -186,7 +187,7 @@ func (a *App) getTeams(w http.ResponseWriter, r *http.Request) {
 func (a *App) getTeam(w http.ResponseWriter, r *http.Request) {
 	// expect to receive team's name
 	vars := mux.Vars(r)
-	t := team.Team{Name: vars["name"]}
+	t := team.TeamTable{Name: vars["name"]}
 
 	if err := t.GetTeam(a.DB); err != nil {
 		switch err {
@@ -214,4 +215,43 @@ func (a *App) getTeamPlayers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondWithJSON(w, http.StatusOK, teams)
+}
+
+/* ---------------- SCORE ROUTES ----------------- */
+
+func (a *App) getScoreMatch(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	matchID, err := strconv.Atoi(vars["matchID"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid match ID")
+		return
+	}
+
+	playerScore, err := score.GetPlayerScore(a.DB, matchID)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Match not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, playerScore)
+}
+
+func (a *App) getScore(w http.ResponseWriter, r *http.Request) {
+	playerScore, err := score.GetScore(a.DB)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, playerScore)
 }

@@ -31,32 +31,33 @@ func (p *PlayerTable) UpdatePlayer(db *sql.DB) error {
 }
 
 func (p *Player) GetPlayer(db *sql.DB) error {
-	statement := fmt.Sprintf(`SELECT 
-	player.name,
-	team.name as team_name,
-	team.photo as team_photo,
-    (SELECT COUNT(player.id) 
-		FROM player 
-			INNER JOIN captain
-				ON fk_captain_player = player.id
-		WHERE player.id = %d) as captain,
-    (SELECT SUM(quantity) 
-		FROM player_score 
-			LEFT JOIN player 
-				ON player.id = fk_score_player) as score,
-	(SELECT SUM(yellow) 
-		FROM card 
-			LEFT JOIN player 
-				ON player.id = fk_card_player) as yellow,
-	(SELECT SUM(red) 
-		FROM card 
-			LEFT JOIN player 
-				ON player.id = fk_card_player) as red
-FROM player
-	INNER JOIN team
-		ON player.fk_player_team = team.name
-WHERE 
-	player.id = %d`, p.ID, p.ID)
+	statement := fmt.Sprintf(
+		`SELECT 
+			player.name,
+			team.name as team_name,
+			team.photo as team_photo,
+				(SELECT COUNT(player.id) 
+				FROM player 
+					INNER JOIN captain
+						ON fk_captain_player = player.id
+				WHERE player.id = %d) as captain,
+				(SELECT SUM(quantity) 
+				FROM player_score 
+					LEFT JOIN player 
+						ON player.id = fk_score_player) as score,
+			(SELECT SUM(yellow) 
+				FROM card 
+					LEFT JOIN player 
+						ON player.id = fk_card_player) as yellow,
+			(SELECT SUM(red) 
+				FROM card 
+					LEFT JOIN player 
+						ON player.id = fk_card_player) as red
+			FROM player
+				INNER JOIN team
+					ON player.fk_player_team = team.name
+			WHERE 
+				player.id = %d`, p.ID, p.ID)
 	if err := db.QueryRow(statement).Scan(&p.Name, &p.Team, &p.TeamPhotoURL, &p.Captain, &p.Score, &p.YellowCard, &p.RedCard); err != nil {
 		return err
 	}
