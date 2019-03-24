@@ -4,21 +4,61 @@
 
 #### **Players**
 
-Represents players details.
+- **Get all players**
+    * HTTP Request : ```GET http://api.com/players```
+    * Return a list of player object in json format as follow
+        ```json 
+            {
+                ID   int    
+	            Name string 
+	            Team string
+            }
+        ```
 
-1. First ordered list item
-2. Another item
-⋅⋅* Unordered sub-list. 
-1. Actual numbers don't matter, just that it's a number
-⋅⋅1. Ordered sub-list
-4. And another item.
+- **Create a player**
+    * HTTP Request : ```POST http://api.com/players```
+    * Send player data in the request body, in the follow format 
+    ```json 
+            {  
+	            Name string 
+	            Team string
+            }
+    ```
+    * http StatusCreated (201) will be sent if the player has been created correctly
+    
+- **Delete a player**
+    * HTTP Request : ```DELETE http://api.com/players/{ID}```
+    * ID is the player ID you want to delete
+    * http StatusOK (200) will be sent if the player has been deleted correctly
 
-⋅⋅⋅You can have properly indented paragraphs within list items. Notice the blank line above, and the leading spaces (at least one, but we'll use three here to also align the raw Markdown).
+- **Update a player**
+    * HTTP Request : ```PUT http://api.com/players/{ID}```
+    * ID is the player ID you want to update
+    * Send player data in the request body, in the follow format
+    ```json 
+            {  
+	            Name string 
+	            Team string
+            }
+    ```
+    * Even if you want to update just one field, you need to fill all others in order to update player correctly
+    * http StatusCreated (201) will be sent if the player has been updated correctly
 
-⋅⋅⋅To have a line break without a paragraph, you will need to use two trailing spaces.⋅⋅
-⋅⋅⋅Note that this line is separate, but within the same paragraph.⋅⋅
-⋅⋅⋅(This is contrary to the typical GFM line break behaviour, where trailing spaces are not required.)
+- **Get a player**
+    * HTTP Request : ```GET http://api.com/players/{ID}```
+    * ID is the player ID you want to get information
+    * Return a player object in json format as follow
+        ```json 
+            {
+                ID           int
+                Name         string
+                Team         string
+                TeamPhotoURL string
+                Score        int
+                YellowCard   int
+                RedCard      int
+                Captain      bool
+            }
+        ```
 
-* Unordered list can use asterisks
-- Or minuses
-+ Or pluses
+
