@@ -1,8 +1,8 @@
 # Computsal
 
-### API - Endpoints
+## API - Endpoints
 
-#### **Players**
+### **Players**
 
 - **Get all players**
     * HTTP Request : ```GET http://api.com/players```
@@ -17,7 +17,7 @@
 
 - **Create a player**
     * HTTP Request : ```POST http://api.com/players```
-    * Send player data in the request body in the follow format 
+    * Send player's data in the request body in the follow format 
     ``` 
             {  
 	            Name string 
@@ -28,13 +28,13 @@
     
 - **Delete a player**
     * HTTP Request : ```DELETE http://api.com/players/{ID}```
-    * ID is the player ID you want to delete
+    * ID is the player's ID you want to delete
     * http StatusOK (200) will be sent if the player has been deleted correctly
 
 - **Update a player**
     * HTTP Request : ```PUT http://api.com/players/{ID}```
-    * ID is the player ID you want to update
-    * Send player data in the request body, in the follow format
+    * ID is the player's ID you want to update
+    * Send player's data in the request body in the follow format
     ``` 
             {  
 	            Name string 
@@ -46,7 +46,7 @@
 
 - **Get a player**
     * HTTP Request : ```GET http://api.com/players/{ID}```
-    * ID is the player ID you want to get information
+    * ID is the player's ID you want to get information
     * Return a player object in json format as follow
         ``` 
             {
@@ -61,4 +61,62 @@
             }
         ```
 
+### **Teams**
+
+- **Get all teams**
+    * HTTP Request : ```GET http://api.com/teams```
+    * Return a list of team object in json format as follow
+        ``` 
+            {
+                ID       int    
+                Name     string 
+                PhotoURL string 
+                Group    int    
+            }
+        ```
+- **Create a team**
+    * HTTP Request : ```POST http://api.com/teams```
+    * Send team's data in the request body in the follow format 
+    ``` 
+            {  
+                Name     string 
+                PhotoURL string 
+                Group    int
+            }
+    ```
+    * http StatusCreated (201) will be sent if the team has been created correctly
+
+- **Delete a team**
+    * HTTP Request : ```DELETE http://api.com/teams/{name}```
+    * Name is the team's name you want to delete
+    * http StatusOK (200) will be sent if the team has been deleted correctly
+
+- **Update a team**
+    * HTTP Request : ```PUT http://api.com/teams/{name}```
+    * Name is the team's name you want to update
+    * Send team's data in the request body in the follow format
+    ``` 
+            {  
+                Name     string 
+                PhotoURL string 
+                Group    int
+            }
+    ```
+    * Even if you want to update just one field you need to fill all others in order to update team correctly
+    * http StatusCreated (201) will be sent if the team has been updated correctly
+
+- **Get a team**
+    * todo
+
+- **Get team's players**
+    * HTTP Request : ```GET http://api.com/teams/{name}/players```
+    * Name is the team's name you want to get players
+    * Return a list of player object in json format as follow
+        ``` 
+            {
+                ID   int    
+	            Name string 
+	            Team string
+            }
+        ```
 
