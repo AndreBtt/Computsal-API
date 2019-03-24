@@ -3,7 +3,7 @@ package player
 type PlayerTable struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
-	Team string `json:"fk_player_team"`
+	Team string `json:"team"`
 }
 
 type Player struct {

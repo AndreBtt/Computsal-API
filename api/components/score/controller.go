@@ -17,7 +17,8 @@ func GetPlayerScore(db *sql.DB, matchKey int) ([]PlayerScore, error) {
 		INNER JOIN
 			player
 		ON player_score.fk_score_player = player.id
-		WHERE player_score.fk_score_match = %d`, matchKey)
+		WHERE player_score.fk_score_match = %d
+		ORDER BY score DESC`, matchKey)
 
 	rows, err := db.Query(statement)
 

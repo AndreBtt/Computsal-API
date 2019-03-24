@@ -42,8 +42,8 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/teams/{name}", a.getTeam).Methods("GET")
 	a.Router.HandleFunc("/teams/{name}/players", a.getTeamPlayers).Methods("GET")
 
-	a.Router.HandleFunc("/score/{matchID}", a.getScoreMatch).Methods("GET")
 	a.Router.HandleFunc("/score", a.getScore).Methods("GET")
+	a.Router.HandleFunc("/score/{matchID}", a.getScoreMatch).Methods("GET")
 }
 
 func (a *App) Run(addr string) {
