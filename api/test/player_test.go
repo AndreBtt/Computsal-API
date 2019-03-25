@@ -1,4 +1,4 @@
-package player
+package test
 
 import (
 	"database/sql"
@@ -7,6 +7,8 @@ import (
 	"os"
 	"testing"
 
+	"github.com/AndreBtt/Computsal/api/components/player"
+	"github.com/AndreBtt/Computsal/api/components/team"
 	_ "github.com/go-sql-driver/mysql"
 )
 
@@ -33,35 +35,40 @@ func TestMain(m *testing.M) {
 
 func TestPlayerAPI(t *testing.T) {
 
-	var playerID int
+	/* -------------  CREATE TEAM -------------------- */
+
+	tCreate := team.TeamTable{Name: "Fake Test Team", PhotoURL: "www.url.com.br", Group: -1}
+	if err := tCreate.CreateTeam(db); err != nil {
+		t.Fatal(err)
+	}
 
 	/* -------------  CREATE PLAYER -------------------- */
 
 	// Ensure that 'Team' variable exists in Team table
-	pCreate := Player{Name: "nameTest", Team: "gol++"}
+	pCreate := player.PlayerTable{Name: "FakeNameTest", Team: "Fake Test Team"}
 	if err := pCreate.CreatePlayer(db); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&playerID); err != nil {
+	if err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&pCreate.ID); err != nil {
 		t.Fatal(err)
 	}
 
 	/* -------------  RETRIVE PLAYER ------------------- */
 
-	pRetrive := Player{ID: playerID}
+	pRetrive := player.Player{ID: pCreate.ID}
 	if err := pRetrive.GetPlayer(db); err != nil {
 		t.Fatal(err)
 	}
 
-	if pRetrive != pCreate {
+	if pRetrive.Name != pCreate.Name || pRetrive.Team != pCreate.Team || pRetrive.ID != pCreate.ID {
 		t.Fatal("Create player different than get player")
 	}
 
 	/* -------------  UPDATE PLAYER -------------------- */
 
-	pUpdate := pRetrive
-	pUpdate.Name = "nameUpdateTest"
+	pUpdate := pCreate
+	pUpdate.Name = "FakeNameUpdateTest"
 	if err := pUpdate.UpdatePlayer(db); err != nil {
 		t.Fatal(err)
 	}
@@ -72,13 +79,19 @@ func TestPlayerAPI(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if pRetrive != pUpdate {
-		t.Fatal("Updated player different than get player")
+	if pUpdate.Name != pRetrive.Name || pUpdate.Team != pRetrive.Team || pUpdate.ID != pRetrive.ID {
+		t.Fatal("Create player different than get player")
 	}
 
 	/* -------------  DELETE PLAYER -------------------- */
 
-	if err := pRetrive.DeletePlayer(db); err != nil {
+	if err := pUpdate.DeletePlayer(db); err != nil {
+		t.Fatal(err)
+	}
+
+	/* -------------  DELETE TEAM -------------------- */
+
+	if err := tCreate.DeleteTeam(db); err != nil {
 		t.Fatal(err)
 	}
 }

@@ -257,6 +257,69 @@ func (a *App) getScores(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, playerScore)
 }
 
+func (a *App) deleteScore(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	var playerID, matchID int
+	var err error
+	if playerID, err = strconv.Atoi(vars["playerID"]); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid player ID")
+		return
+	}
+	if matchID, err = strconv.Atoi(vars["matchID"]); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid match ID")
+		return
+	}
+
+	ps := score.PlayerScoreTable{MatchID: matchID, PlayerID: playerID}
+	if err := ps.DeleteScore(a.DB); err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+}
+
+func (a *App) updateScore(w http.ResponseWriter, r *http.Request) {
+	ps := score.PlayerScoreTable{}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&ps); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := ps.UpdateScore(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, ps)
+
+}
+
+func (a *App) createScore(w http.ResponseWriter, r *http.Request) {
+	var ps score.PlayerScoreTable
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&ps); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := ps.CreateScore(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, ps)
+}
+
 /* ---------------- CARD ROUTES ----------------- */
 
 func (a *App) getCards(w http.ResponseWriter, r *http.Request) {

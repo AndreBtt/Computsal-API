@@ -1,4 +1,4 @@
-package team
+package test
 
 import (
 	"database/sql"
@@ -6,6 +6,8 @@ import (
 	"log"
 	"os"
 	"testing"
+
+	team "github.com/AndreBtt/Computsal/api/components/team"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -37,7 +39,7 @@ func TestTeamAPI(t *testing.T) {
 
 	/* -------------  CREATE TEAM -------------------- */
 
-	tCreate := Team{Name: "testTeam", PhotoURL: "www.url.com.br", Group: 1}
+	tCreate := team.Team{Name: "testTeam", PhotoURL: "www.url.com.br", Group: 1}
 	if err := tCreate.CreateTeam(db); err != nil {
 		t.Fatal(err)
 	}
@@ -48,7 +50,7 @@ func TestTeamAPI(t *testing.T) {
 
 	/* -------------  RETRIVE TEAM ------------------- */
 
-	tRetrive := Team{Name: "testTeam"}
+	tRetrive := team.Team{Name: "testTeam"}
 	if err := tRetrive.GetTeam(db); err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +69,7 @@ func TestTeamAPI(t *testing.T) {
 
 	/* -------------  RETRIVE UPDATED TEAM ----------- */
 
-	tRetriveUpdate := Team{Name: "testTeamUpdate"}
+	tRetriveUpdate := team.Team{Name: "testTeamUpdate"}
 	if err := tRetriveUpdate.GetTeam(db); err != nil {
 		t.Fatal(err)
 	}

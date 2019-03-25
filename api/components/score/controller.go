@@ -77,3 +77,54 @@ func GetScores(db *sql.DB) ([]PlayerScore, error) {
 
 	return playersScore, nil
 }
+
+func (ps *PlayerScoreTable) DeleteScore(db *sql.DB) error {
+	statement := fmt.Sprintf(`
+		DELETE FROM
+			player_score
+		WHERE 
+			fk_score_player = %d AND
+			fk_score_match = %d
+		`, ps.PlayerID, ps.MatchID)
+
+	_, err := db.Exec(statement)
+	return err
+}
+
+func (ps *PlayerScoreTable) UpdateScore(db *sql.DB) error {
+	// if the player does not score in a match he should be deleted
+	if ps.Quantity == 0 {
+		err := ps.DeleteScore(db)
+		return err
+	}
+
+	statement := fmt.Sprintf(`
+		UPDATE 
+			player_score
+		SET 
+			quantity = %d 
+		WHERE 
+			fk_score_player = %d AND
+			fk_score_match = %d
+		`, ps.Quantity, ps.PlayerID, ps.MatchID)
+
+	_, err := db.Exec(statement)
+	return err
+}
+
+func (ps *PlayerScoreTable) CreateScore(db *sql.DB) error {
+	// if the player does not score in a match he should not be added
+	if ps.Quantity == 0 {
+		return nil
+	}
+
+	statement := fmt.Sprintf(`
+		INSERT INTO 
+			player_score 
+		VALUES
+			(%d, %d, %d)
+		`, ps.PlayerID, ps.MatchID, ps.Quantity)
+
+	_, err := db.Exec(statement)
+	return err
+}

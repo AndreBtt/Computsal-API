@@ -43,6 +43,9 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/teams/{name}/players", a.getTeamPlayers).Methods("GET")
 
 	a.Router.HandleFunc("/scores", a.getScores).Methods("GET")
+	a.Router.HandleFunc("/scores", a.createScore).Methods("POST")
+	a.Router.HandleFunc("/scores", a.updateScore).Methods("UPDATE")
+	a.Router.HandleFunc("/scores/{playerID}/{matchID}", a.deleteScore).Methods("DELETE")
 	a.Router.HandleFunc("/scores/{matchID}", a.getScoreMatch).Methods("GET")
 
 	a.Router.HandleFunc("/cards", a.getCards).Methods("GET")

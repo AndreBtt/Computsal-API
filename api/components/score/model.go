@@ -8,3 +8,9 @@ type PlayerScore struct {
 	Player player.PlayerTable
 	Score  int
 }
+
+type PlayerScoreTable struct {
+	PlayerID int
+	MatchID  int
+	Quantity int
+}

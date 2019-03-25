@@ -41,18 +41,18 @@ func (p *Player) GetPlayer(db *sql.DB) error {
 					INNER JOIN captain
 						ON fk_captain_player = player.id
 				WHERE player.id = %d) as captain,
-				(SELECT SUM(quantity) 
+			COALESCE((SELECT SUM(quantity) 
 				FROM player_score 
-					LEFT JOIN player 
-						ON player.id = fk_score_player) as score,
-			(SELECT SUM(yellow) 
+					LEFT JOIN player
+						ON player.id = fk_score_player),0) as score,
+			COALESCE((SELECT SUM(yellow) 
 				FROM card 
 					LEFT JOIN player 
-						ON player.id = fk_card_player) as yellow,
-			(SELECT SUM(red) 
+						ON player.id = fk_card_player),0) as yellow,
+			COALESCE((SELECT SUM(red) 
 				FROM card 
 					LEFT JOIN player 
-						ON player.id = fk_card_player) as red
+						ON player.id = fk_card_player),0) as red
 			FROM player
 				INNER JOIN team
 					ON player.fk_player_team = team.name
