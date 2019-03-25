@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	card "github.com/AndreBtt/Computsal/api/components/card"
+	match "github.com/AndreBtt/Computsal/api/components/match"
 	player "github.com/AndreBtt/Computsal/api/components/player"
 	score "github.com/AndreBtt/Computsal/api/components/score"
 	team "github.com/AndreBtt/Computsal/api/components/team"
@@ -55,13 +55,6 @@ func (a *App) deletePlayer(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) updatePlayer(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	playerID, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid player ID")
-		return
-	}
-
 	var p player.PlayerTable
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&p); err != nil {
@@ -69,8 +62,6 @@ func (a *App) updatePlayer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer r.Body.Close()
-
-	p.ID = playerID
 
 	if err := p.UpdatePlayer(a.DB); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
@@ -137,7 +128,12 @@ func (a *App) createTeam(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) deleteTeam(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	t := team.TeamTable{Name: vars["name"]}
+	teamID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid team ID")
+		return
+	}
+	t := team.TeamTable{ID: teamID}
 
 	if err := t.DeleteTeam(a.DB); err != nil {
 		switch err {
@@ -153,8 +149,6 @@ func (a *App) deleteTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) updateTeam(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-
 	var t team.TeamTable
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&t); err != nil {
@@ -163,7 +157,7 @@ func (a *App) updateTeam(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := t.UpdateTeam(a.DB, vars["name"]); err != nil {
+	if err := t.UpdateTeam(a.DB); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -186,7 +180,6 @@ func (a *App) getTeams(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getTeam(w http.ResponseWriter, r *http.Request) {
-	// expect to receive team's name
 	vars := mux.Vars(r)
 	t := team.TeamTable{Name: vars["name"]}
 
@@ -277,23 +270,22 @@ func (a *App) deleteScore(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
-// func (a *App) updateScore(w http.ResponseWriter, r *http.Request) {
-// 	ps := score.PlayerScoreTable{}
-// 	decoder := json.NewDecoder(r.Body)
-// 	if err := decoder.Decode(&ps); err != nil {
-// 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-// 		return
-// 	}
-// 	defer r.Body.Close()
+func (a *App) updateScore(w http.ResponseWriter, r *http.Request) {
+	ps := score.PlayerScoreTable{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&ps); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
 
-// 	if err := ps.UpdateScore(a.DB); err != nil {
-// 		respondWithError(w, http.StatusInternalServerError, err.Error())
-// 		return
-// 	}
+	if err := ps.UpdateScore(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
 
-// 	respondWithJSON(w, http.StatusCreated, ps)
-
-// }
+	respondWithJSON(w, http.StatusCreated, ps)
+}
 
 func (a *App) createScore(w http.ResponseWriter, r *http.Request) {
 	var ps score.PlayerScoreTable
@@ -312,104 +304,21 @@ func (a *App) createScore(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, ps)
 }
 
-/* ---------------- CARD ROUTES ----------------- */
-
-func (a *App) getCardsMatch(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	matchID, err := strconv.Atoi(vars["matchID"])
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid match ID")
-		return
-	}
-
-	playerCard, err := card.GetPlayerCard(a.DB, matchID)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			respondWithError(w, http.StatusNotFound, "Match not found")
-		default:
-			respondWithError(w, http.StatusInternalServerError, err.Error())
-		}
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, playerCard)
-}
-
-func (a *App) getCards(w http.ResponseWriter, r *http.Request) {
-	playerCard, err := card.GetCards(a.DB)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			respondWithError(w, http.StatusNotFound, "Not found")
-		default:
-			respondWithError(w, http.StatusInternalServerError, err.Error())
-		}
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, playerCard)
-}
-
-func (a *App) createCard(w http.ResponseWriter, r *http.Request) {
-	var c card.CardTable
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&c); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-	defer r.Body.Close()
-
-	if err := c.CreateCard(a.DB); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	respondWithJSON(w, http.StatusCreated, c)
-}
-
-func (a *App) updateCard(w http.ResponseWriter, r *http.Request) {
-	c := card.CardUpdate{}
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&c); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-	defer r.Body.Close()
-
-	if err := c.UpdateCard(a.DB); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	respondWithJSON(w, http.StatusCreated, c)
-
-}
-
-func (a *App) deleteCard(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	cardID, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid Card ID")
-		return
-	}
-	if err := card.DeleteCard(a.DB, cardID); err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			respondWithError(w, http.StatusNotFound, "Not found")
-		default:
-			respondWithError(w, http.StatusInternalServerError, err.Error())
-		}
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
-}
-
 /* ---------------- PREVIOUS MATCHES ROUTES ----------------- */
 
 func (a *App) getPreviousMatches(w http.ResponseWriter, r *http.Request) {
+	previousMatches, err := match.GetPreviousMatches(a.DB)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Matches not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
 
+	respondWithJSON(w, http.StatusOK, previousMatches)
 }
 
 func (a *App) createPreviousMatch(w http.ResponseWriter, r *http.Request) {

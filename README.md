@@ -9,9 +9,9 @@
     * Return a list of object in json format as follow
         ``` 
             {
-                ID   int    
-	            Name string 
-	            Team string
+                "id"   int    
+	            "name" string 
+	            "team" string
             }
         ```
 
@@ -20,8 +20,8 @@
     * Send player's data in the request body in the follow format 
     ``` 
             {  
-	            Name string 
-	            Team string
+	            "name" string 
+	            "team" string
             }
     ```
     * http StatusCreated (201) will be sent if the player has been created correctly
@@ -37,8 +37,8 @@
     * Send player's data in the request body in the follow format
     ``` 
             {  
-	            Name string 
-	            Team string
+	            "name" string 
+	            "team" string
             }
     ```
     * Even if you want to update just one field you need to fill all others in order to update player correctly
@@ -50,14 +50,14 @@
     * Return a player object in json format as follow
         ``` 
             {
-                ID           int
-                Name         string
-                Team         string
-                TeamPhotoURL string
-                Score        int
-                YellowCard   int
-                RedCard      int
-                Captain      bool
+                "id"            int
+                "name"          string
+                "team"          string
+                "teamPhoto"     string
+                "score"         int
+                "yellowCard"    int
+                "redCard"       int
+                "captain"       bool
             }
         ```
 
@@ -68,20 +68,21 @@
     * Return a list of object in json format as follow
         ``` 
             {
-                ID       int    
-                Name     string 
-                PhotoURL string 
-                Group    int    
+                "id"        int    
+                "name"      string 
+                "photo"     string 
+                "group"     int    
             }
         ```
+
 - **Create a team**
     * HTTP Request : ```POST http://api.com/teams```
     * Send team's data in the request body in the follow format 
     ``` 
             {  
-                Name     string 
-                PhotoURL string 
-                Group    int
+                "name"      string 
+                "photo"     string 
+                "group"     int
             }
     ```
     * http StatusCreated (201) will be sent if the team has been created correctly
@@ -98,9 +99,9 @@
     * Send team's data in the request body in the follow format
     ``` 
             {  
-                Name     string 
-                PhotoURL string 
-                Group    int
+                "name"      string 
+                "photo"     string 
+                "group"     int
             }
     ```
     * Even if you want to update just one field you need to fill all others in order to update team correctly
@@ -115,9 +116,9 @@
     * Return a list of player object in json format as follow
         ``` 
             {
-                ID   int    
-	            Name string 
-	            Team string
+                "id"    int    
+	            "name"  string 
+	            "team"  string
             }
         ```
 
@@ -128,14 +129,53 @@
     * Return a list object in json format as follow ordered by ascending score order
         ``` 
             {
-                Player {
-                    id   int
-                    name string
-                    team string
+                "player" {
+                    "id"    int
+                    "name"  string
+                    "team"  string
                 }
-                Score int
+                "score"         int
+                "yellowCard"    int
+                "redCard"       int
             }
         ```
+
+- **Create a player score**
+    * HTTP Request : ```POST http://api.com/scores```
+    * Send player's score data in the request body in the follow format 
+    ``` 
+            {  
+                "id"            int 
+                "playerID"      int 
+                "matchID"       int 
+                "score"         int 
+                "yellowCard"    int 
+                "redCard"       int 
+            }
+    ```
+    * http StatusCreated (201) will be sent if the player's score has been created correctly
+
+- **Delete a player score**
+    * HTTP Request : ```DELETE http://api.com/scores/{id}```
+    * ID is the player's score ID you want to delete
+    * http StatusOK (200) will be sent if the team has been deleted correctly
+
+- **Update a player score**
+    * HTTP Request : ```PUT http://api.com/scores```
+    * Send player's score data in the request body in the follow format
+    ``` 
+            {  
+                "id"            int 
+                "playerID"      int 
+                "matchID"       int 
+                "score"         int 
+                "yellowCard"    int 
+                "redCard"       int 
+            }
+    ```
+    * It will be replace using the ID value, ensure it is correct
+    * Even if you want to update just one field you need to fill all others in order to update correctly
+    * http StatusCreated (201) will be sent if the team has been updated correctly
 
 - **Get players score in a match**
     * HTTP Request : ```GET http://api.com/scores/{matchID}```
@@ -143,44 +183,30 @@
     * Return a list object in json format as follow ordered by ascending score order
         ``` 
             {
-                Player {
-                    id   int
-                    name string
-                    team string
+                "player" {
+                    "id"    int
+                    "name"  string
+                    "team"  string
                 }
-                Score int
+                "score"         int
+                "yellowCard"    int
+                "redCard"       int
             }
         ```
 
-### **Card**
 
-- **Get all players card**
-    * HTTP Request : ```GET http://api.com/cards```
-    * Return a list object in json format as follow, ordered by ascending Yellow card order followed by ascending Red card order
+### **Previous Matches**
+
+- **Get all previous matches**
+    * HTTP Request : ```GET http://api.com/previousMatches```
+    * Return a list object in json format as follow
         ``` 
             {
-                Player {
-                    id   int
-                    name string
-                    team string
-                }
-                Red    int
-	            Yellow int
+                "id"        int    
+                "team1"     string 
+                "team2"     string 
+                "score1"    int    
+                "score2"    int    
+                "type"      int    
+                "phase"     int    
             }
-        ```
-
-- **Get players card in a match**
-    * HTTP Request : ```GET http://api.com/cards/{matchID}```
-    * matchID is the match's ID you want to get information
-    * Return a list object in json format as follow, ordered by ascending Yellow card order followed by ascending Red card order
-        ``` 
-            {
-                Player {
-                    id   int
-                    name string
-                    team string
-                }
-                Red    int
-	            Yellow int
-            }
-        ```

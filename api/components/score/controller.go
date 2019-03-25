@@ -11,14 +11,20 @@ func GetPlayerScore(db *sql.DB, matchKey int) ([]PlayerScore, error) {
 			player.id,
 			player.name,
 			player.fk_player_team as team,
-			player_score.quantity as score
+			player_match.quantity as score,
+			player_match.yellow as yellow,
+			player_match.red as red
 		FROM
-			player_score
+			player_match
 		INNER JOIN
 			player
-		ON player_score.fk_score_player = player.id
-		WHERE player_score.fk_score_match = %d
-		ORDER BY score DESC`, matchKey)
+		ON player_match.fk_score_player = player.id
+		WHERE player_match.fk_score_match = %d
+		ORDER BY 
+			score DESC,
+			yellow ASC,
+			red ASC
+		`, matchKey)
 
 	rows, err := db.Query(statement)
 
@@ -32,7 +38,7 @@ func GetPlayerScore(db *sql.DB, matchKey int) ([]PlayerScore, error) {
 
 	for rows.Next() {
 		var p PlayerScore
-		if err := rows.Scan(&p.Player.ID, &p.Player.Name, &p.Player.Team, &p.Score); err != nil {
+		if err := rows.Scan(&p.Player.ID, &p.Player.Name, &p.Player.Team, &p.Score, &p.Yellow, &p.Red); err != nil {
 			return nil, err
 		}
 		playersScore = append(playersScore, p)
@@ -47,15 +53,20 @@ func GetScores(db *sql.DB) ([]PlayerScore, error) {
 			player.name, 
 			team.name as team_name,
 			player.id as player_id,
-			COALESCE(sum(player_score.quantity), 0) as score
+			COALESCE(sum(player_match.quantity), 0) as score,
+			COALESCE(sum(player_match.yellow), 0) as yellow,
+			COALESCE(sum(player_match.red), 0) as red
 		FROM 
 			player
 		INNER JOIN team
 			ON player.fk_player_team = team.name
-		LEFT JOIN player_score
-			ON player_score.fk_score_player = player.id
+		LEFT JOIN player_match
+			ON player_match.fk_score_player = player.id
 		GROUP BY name, team_name, player_id
-		ORDER BY score DESC`)
+		ORDER BY 
+			score DESC,
+			red ASC,
+			yellow ASC`)
 
 	rows, err := db.Query(statement)
 
@@ -69,7 +80,7 @@ func GetScores(db *sql.DB) ([]PlayerScore, error) {
 
 	for rows.Next() {
 		var p PlayerScore
-		if err := rows.Scan(&p.Player.Name, &p.Player.Team, &p.Player.ID, &p.Score); err != nil {
+		if err := rows.Scan(&p.Player.Name, &p.Player.Team, &p.Player.ID, &p.Score, &p.Yellow, &p.Red); err != nil {
 			return nil, err
 		}
 		playersScore = append(playersScore, p)
@@ -81,7 +92,7 @@ func GetScores(db *sql.DB) ([]PlayerScore, error) {
 func DeleteScore(db *sql.DB, scoreID int) error {
 	statement := fmt.Sprintf(`
 		DELETE FROM
-			player_score
+			player_match
 		WHERE 
 			id = %d
 		`, scoreID)
@@ -90,38 +101,39 @@ func DeleteScore(db *sql.DB, scoreID int) error {
 	return err
 }
 
-// func (ps *PlayerScoreTable) UpdateScore(db *sql.DB) error {
-// 	// if the player does not score in a match he should be deleted
-// 	if ps.Quantity == 0 {
-// 		err := ps.DeleteScore(db)
-// 		return err
-// 	}
+func (ps *PlayerScoreTable) UpdateScore(db *sql.DB) error {
+	// if the player does not have data in a match he should be deleted
+	if ps.Quantity == 0 && ps.Yellow == 0 && ps.Red == 0 {
+		err := DeleteScore(db, ps.ID)
+		return err
+	}
 
-// 	statement := fmt.Sprintf(`
-// 		UPDATE
-// 			player_score
-// 		SET
-// 			quantity = %d
-// 		WHERE
-// 			id = %d
-// 		`, ps.Quantity, ps.ID)
+	statement := fmt.Sprintf(`
+		UPDATE
+			player_match
+		SET
+			quantity = %d,
+			yellow = %d,
+			red = %d
+		WHERE
+			id = %d
+		`, ps.Quantity, ps.Yellow, ps.Red, ps.ID)
 
-// 	_, err := db.Exec(statement)
-// 	return err
-// }
+	_, err := db.Exec(statement)
+	return err
+}
 
 func (ps *PlayerScoreTable) CreateScore(db *sql.DB) error {
-	// if the player does not score in a match he should not be added
-	if ps.Quantity == 0 {
+	// if the player does not have any data in a match he should not be added
+	if ps.Quantity == 0 && ps.Red == 0 && ps.Yellow == 0 {
 		return nil
 	}
 
 	statement := fmt.Sprintf(`
 		INSERT INTO 
-			player_score
-		VALUES
-			(%d, %d, %d)
-		`, ps.PlayerID, ps.MatchID, ps.Quantity)
+			player_match(fk_score_player, fk_score_match, quantity, yellow, red)
+		VALUES(%d, %d, %d, %d, %d)
+		`, ps.PlayerID, ps.MatchID, ps.Quantity, ps.Yellow, ps.Red)
 
 	if _, err := db.Exec(statement); err != nil {
 		return err

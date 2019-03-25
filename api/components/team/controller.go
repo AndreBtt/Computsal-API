@@ -18,14 +18,26 @@ func (t *TeamTable) CreateTeam(db *sql.DB) error {
 	return nil
 }
 
-func (t *TeamTable) UpdateTeam(db *sql.DB, key string) error {
-	statement := fmt.Sprintf("UPDATE team SET name='%s', photo='%s', group_number=%d WHERE name='%s'", t.Name, t.PhotoURL, t.Group, key)
+func (t *TeamTable) UpdateTeam(db *sql.DB) error {
+	statement := fmt.Sprintf(`
+		UPDATE 
+			team
+		SET
+			name = '%s',
+			photo = '%s',
+			group_number = %d
+		WHERE
+			id = %d`, t.Name, t.PhotoURL, t.Group, t.ID)
 	_, err := db.Exec(statement)
 	return err
 }
 
 func (t *TeamTable) DeleteTeam(db *sql.DB) error {
-	statement := fmt.Sprintf("DELETE FROM team WHERE name='%s'", t.Name)
+	statement := fmt.Sprintf(`
+		DELETE FROM
+			team 
+		WHERE 
+			id = %d`, t.ID)
 	_, err := db.Exec(statement)
 	return err
 }

@@ -32,38 +32,32 @@ func (p *PlayerTable) UpdatePlayer(db *sql.DB) error {
 
 func (p *Player) GetPlayer(db *sql.DB) error {
 	statement := fmt.Sprintf(
-		`SELECT 
+		`SELECT
+			player.id,
 			player.name,
-			team.name as team_name,
-			team.photo as team_photo,
-				(SELECT COUNT(player.id) 
+			team.name AS team_name,
+			team.photo AS team_photo,
+			(SELECT COUNT(player.id) 
 				FROM player 
 					INNER JOIN captain
 						ON fk_captain_player = player.id
-				WHERE player.id = %d) as captain,
-			COALESCE((SELECT SUM(quantity) 
-				FROM player_score 
-					LEFT JOIN player
-						ON player.id = fk_score_player),0) as score,
-			COALESCE((SELECT SUM(yellow) 
-				FROM card 
-					LEFT JOIN player 
-						ON player.id = fk_card_player),0) as yellow,
-			COALESCE((SELECT SUM(red) 
-				FROM card 
-					LEFT JOIN player 
-						ON player.id = fk_card_player),0) as red
-			FROM player
-				INNER JOIN team
-					ON player.fk_player_team = team.name
-			WHERE 
-				player.id = %d`, p.ID, p.ID)
-	if err := db.QueryRow(statement).Scan(&p.Name, &p.Team, &p.TeamPhotoURL, &p.Captain, &p.Score, &p.YellowCard, &p.RedCard); err != nil {
+				WHERE player.id = %d) AS captain,
+			COALESCE(SUM(quantity), 0) AS score,
+			COALESCE(SUM(yellow), 0) AS yellow,
+			COALESCE(SUM(red), 0) AS red
+		FROM player
+			INNER JOIN player_match
+				ON player_match.fk_score_player = player.id
+			INNER JOIN team
+				ON player.fk_player_team = team.name
+		WHERE
+			player.id = %d
+		GROUP BY player.id, player.name, team.name, captain`, p.ID, p.ID)
+	if err := db.QueryRow(statement).Scan(&p.ID, &p.Name, &p.Team, &p.TeamPhotoURL, &p.Captain, &p.Score, &p.YellowCard, &p.RedCard); err != nil {
 		return err
 	}
 
 	return nil
-
 }
 
 func GetPlayers(db *sql.DB) ([]PlayerTable, error) {
