@@ -124,11 +124,11 @@
 ### **Score**
 
 - **Get all players score**
-    * HTTP Request : ```GET http://api.com/score```
+    * HTTP Request : ```GET http://api.com/scores```
     * Return a list object in json format as follow ordered by ascending score order
         ``` 
             {
-                Player: {
+                Player {
                     id   int
                     name string
                     team string
@@ -138,16 +138,49 @@
         ```
 
 - **Get players score in a match**
-    * HTTP Request : ```GET http://api.com/score/{matchID}```
+    * HTTP Request : ```GET http://api.com/scores/{matchID}```
     * matchID is the match's ID you want to get information
     * Return a list object in json format as follow ordered by ascending score order
         ``` 
             {
-                Player: {
+                Player {
                     id   int
                     name string
                     team string
                 }
                 Score int
+            }
+        ```
+
+### **Card**
+
+- **Get all players card**
+    * HTTP Request : ```GET http://api.com/cards```
+    * Return a list object in json format as follow, ordered by ascending Yellow card order followed by ascending Red card order
+        ``` 
+            {
+                Player {
+                    id   int
+                    name string
+                    team string
+                }
+                Red    int
+	            Yellow int
+            }
+        ```
+
+- **Get players card in a match**
+    * HTTP Request : ```GET http://api.com/cards/{matchID}```
+    * matchID is the match's ID you want to get information
+    * Return a list object in json format as follow, ordered by ascending Yellow card order followed by ascending Red card order
+        ``` 
+            {
+                Player {
+                    id   int
+                    name string
+                    team string
+                }
+                Red    int
+	            Yellow int
             }
         ```

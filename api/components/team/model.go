@@ -23,6 +23,6 @@ type Team struct {
 	RedCard      int
 	GoalsPro     int
 	GoalsAgainst int
-	NextGame     string
+	NextMatch    string
 	Players      []player.PlayerTable
 }

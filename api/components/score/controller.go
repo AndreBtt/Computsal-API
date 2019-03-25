@@ -41,7 +41,7 @@ func GetPlayerScore(db *sql.DB, matchKey int) ([]PlayerScore, error) {
 	return playersScore, nil
 }
 
-func GetScore(db *sql.DB) ([]PlayerScore, error) {
+func GetScores(db *sql.DB) ([]PlayerScore, error) {
 	statement := fmt.Sprintf(
 		`SELECT 
 			player.name, 

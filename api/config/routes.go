@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	card "github.com/AndreBtt/Computsal/api/components/card"
 	player "github.com/AndreBtt/Computsal/api/components/player"
 	score "github.com/AndreBtt/Computsal/api/components/score"
 	team "github.com/AndreBtt/Computsal/api/components/team"
@@ -241,8 +242,8 @@ func (a *App) getScoreMatch(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, playerScore)
 }
 
-func (a *App) getScore(w http.ResponseWriter, r *http.Request) {
-	playerScore, err := score.GetScore(a.DB)
+func (a *App) getScores(w http.ResponseWriter, r *http.Request) {
+	playerScore, err := score.GetScores(a.DB)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -254,4 +255,49 @@ func (a *App) getScore(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, playerScore)
+}
+
+/* ---------------- CARD ROUTES ----------------- */
+
+func (a *App) getCards(w http.ResponseWriter, r *http.Request) {
+	playerCard, err := card.GetCards(a.DB)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, playerCard)
+}
+
+func (a *App) getCardsMatch(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	matchID, err := strconv.Atoi(vars["matchID"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid match ID")
+		return
+	}
+
+	playerCard, err := card.GetPlayerCard(a.DB, matchID)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Match not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, playerCard)
+}
+
+/* ---------------- PREVIOUS MATCHES ROUTES ----------------- */
+
+func (a *App) getPreviousMatches(w http.ResponseWriter, r *http.Request) {
+
 }
