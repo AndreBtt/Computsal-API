@@ -83,3 +83,54 @@ func GetPlayerCard(db *sql.DB, matchKey int) ([]PlayerCard, error) {
 
 	return playersCard, nil
 }
+
+func (c *CardTable) CreateCard(db *sql.DB) error {
+	// if the player does not have card in a match he should not be added
+	if c.Red == 0 && c.Yellow == 0 {
+		return nil
+	}
+
+	statement := fmt.Sprintf(`
+		INSERT INTO 
+			card(fk_card_player, fk_card_match, yellow, red) 
+		VALUES
+			(%d, %d, %d, %d)
+		`, c.PlayerID, c.MatchID, c.Yellow, c.Red)
+
+	_, err := db.Exec(statement)
+	return err
+}
+
+func (c *CardUpdate) UpdateCard(db *sql.DB) error {
+	// if the player does not have card in a match he should be deleted
+	if c.Red == 0 && c.Yellow == 0 {
+		// delete
+		return nil
+	}
+
+	statement := fmt.Sprintf(`
+	UPDATE 
+		card
+	SET 
+		yellow = %d,
+		red = %d
+	WHERE 
+		id = %d
+		`, c.Yellow, c.Red, c.ID)
+
+	_, err := db.Exec(statement)
+	return err
+
+}
+
+func DeleteCard(db *sql.DB, cardID int) error {
+	statement := fmt.Sprintf(`
+		DELETE FROM
+			card
+		WHERE 
+			id = %d
+		`, cardID)
+
+	_, err := db.Exec(statement)
+	return err
+}

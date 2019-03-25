@@ -43,7 +43,7 @@ func GetPlayerScore(db *sql.DB, matchKey int) ([]PlayerScore, error) {
 
 func GetScores(db *sql.DB) ([]PlayerScore, error) {
 	statement := fmt.Sprintf(
-		`SELECT 
+		`SELECT
 			player.name, 
 			team.name as team_name,
 			player.id as player_id,
@@ -78,39 +78,37 @@ func GetScores(db *sql.DB) ([]PlayerScore, error) {
 	return playersScore, nil
 }
 
-func (ps *PlayerScoreTable) DeleteScore(db *sql.DB) error {
+func DeleteScore(db *sql.DB, scoreID int) error {
 	statement := fmt.Sprintf(`
 		DELETE FROM
 			player_score
 		WHERE 
-			fk_score_player = %d AND
-			fk_score_match = %d
-		`, ps.PlayerID, ps.MatchID)
+			id = %d
+		`, scoreID)
 
 	_, err := db.Exec(statement)
 	return err
 }
 
-func (ps *PlayerScoreTable) UpdateScore(db *sql.DB) error {
-	// if the player does not score in a match he should be deleted
-	if ps.Quantity == 0 {
-		err := ps.DeleteScore(db)
-		return err
-	}
+// func (ps *PlayerScoreTable) UpdateScore(db *sql.DB) error {
+// 	// if the player does not score in a match he should be deleted
+// 	if ps.Quantity == 0 {
+// 		err := ps.DeleteScore(db)
+// 		return err
+// 	}
 
-	statement := fmt.Sprintf(`
-		UPDATE 
-			player_score
-		SET 
-			quantity = %d 
-		WHERE 
-			fk_score_player = %d AND
-			fk_score_match = %d
-		`, ps.Quantity, ps.PlayerID, ps.MatchID)
+// 	statement := fmt.Sprintf(`
+// 		UPDATE
+// 			player_score
+// 		SET
+// 			quantity = %d
+// 		WHERE
+// 			id = %d
+// 		`, ps.Quantity, ps.ID)
 
-	_, err := db.Exec(statement)
-	return err
-}
+// 	_, err := db.Exec(statement)
+// 	return err
+// }
 
 func (ps *PlayerScoreTable) CreateScore(db *sql.DB) error {
 	// if the player does not score in a match he should not be added
@@ -120,11 +118,15 @@ func (ps *PlayerScoreTable) CreateScore(db *sql.DB) error {
 
 	statement := fmt.Sprintf(`
 		INSERT INTO 
-			player_score 
+			player_score
 		VALUES
 			(%d, %d, %d)
 		`, ps.PlayerID, ps.MatchID, ps.Quantity)
 
-	_, err := db.Exec(statement)
+	if _, err := db.Exec(statement); err != nil {
+		return err
+	}
+
+	err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&ps.ID)
 	return err
 }

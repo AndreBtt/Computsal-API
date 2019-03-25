@@ -10,6 +10,7 @@ type PlayerScore struct {
 }
 
 type PlayerScoreTable struct {
+	ID       int
 	PlayerID int
 	MatchID  int
 	Quantity int

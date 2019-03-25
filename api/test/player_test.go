@@ -45,7 +45,7 @@ func TestPlayerAPI(t *testing.T) {
 	/* -------------  CREATE PLAYER -------------------- */
 
 	// Ensure that 'Team' variable exists in Team table
-	pCreate := player.PlayerTable{Name: "FakeNameTest", Team: "Fake Test Team"}
+	pCreate := player.PlayerTable{Name: "Fake Name Test", Team: "Fake Test Team"}
 	if err := pCreate.CreatePlayer(db); err != nil {
 		t.Fatal(err)
 	}

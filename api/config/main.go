@@ -44,14 +44,20 @@ func (a *App) initializeRoutes() {
 
 	a.Router.HandleFunc("/scores", a.getScores).Methods("GET")
 	a.Router.HandleFunc("/scores", a.createScore).Methods("POST")
-	a.Router.HandleFunc("/scores", a.updateScore).Methods("UPDATE")
-	a.Router.HandleFunc("/scores/{playerID}/{matchID}", a.deleteScore).Methods("DELETE")
+	// a.Router.HandleFunc("/scores/{id}", a.updateScore).Methods("UPDATE")
+	// ainda nao sei como fazer update
+	a.Router.HandleFunc("/scores/{id}", a.deleteScore).Methods("DELETE")
 	a.Router.HandleFunc("/scores/{matchID}", a.getScoreMatch).Methods("GET")
 
 	a.Router.HandleFunc("/cards", a.getCards).Methods("GET")
+	a.Router.HandleFunc("/cards", a.createCard).Methods("POST")
+	// a.Router.HandleFunc("/cards", a.updateCard).Methods("UPDATE")
+	// se pa msm coisa do score
+	a.Router.HandleFunc("/cards/{id}", a.deleteCard).Methods("DELETE")
 	a.Router.HandleFunc("/cards/{matchID}", a.getCardsMatch).Methods("GET")
 
 	a.Router.HandleFunc("/previousMatches", a.getPreviousMatches).Methods("GET")
+	a.Router.HandleFunc("/previousMatches", a.createPreviousMatch).Methods("POST")
 }
 
 func (a *App) Run(addr string) {

@@ -7,3 +7,17 @@ type PlayerCard struct {
 	Red    int
 	Yellow int
 }
+
+type CardTable struct {
+	ID       int
+	PlayerID int
+	MatchID  int
+	Yellow   int
+	Red      int
+}
+
+type CardUpdate struct {
+	ID     int
+	Yellow int
+	Red    int
+}
