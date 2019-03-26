@@ -270,23 +270,6 @@ func (a *App) deleteScore(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
-func (a *App) updateScore(w http.ResponseWriter, r *http.Request) {
-	ps := score.PlayerScoreTable{}
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&ps); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-	defer r.Body.Close()
-
-	if err := ps.UpdateScore(a.DB); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	respondWithJSON(w, http.StatusCreated, ps)
-}
-
 func (a *App) createScore(w http.ResponseWriter, r *http.Request) {
 	var ps score.PlayerScoreTable
 	decoder := json.NewDecoder(r.Body)
@@ -378,4 +361,28 @@ func (a *App) createPreviousMatch(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusCreated, match)
+}
+
+func (a *App) updatePreviousMatch(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	matchID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid match ID")
+		return
+	}
+
+	ps := score.PlayerIDScore{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&ps); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := ps.UpdateScore(a.DB, matchID); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, ps)
 }

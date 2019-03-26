@@ -101,9 +101,9 @@ func DeleteScore(db *sql.DB, scoreID int) error {
 	return err
 }
 
-func (ps *PlayerScoreTable) UpdateScore(db *sql.DB) error {
+func (ps *PlayerIDScore) UpdateScore(db *sql.DB, matchID int) error {
 	// if the player does not have data in a match he should be deleted
-	if ps.Quantity == 0 && ps.Yellow == 0 && ps.Red == 0 {
+	if ps.Score == 0 && ps.Yellow == 0 && ps.Red == 0 {
 		err := DeleteScore(db, ps.ID)
 		return err
 	}
@@ -116,8 +116,9 @@ func (ps *PlayerScoreTable) UpdateScore(db *sql.DB) error {
 			yellow = %d,
 			red = %d
 		WHERE
-			id = %d
-		`, ps.Quantity, ps.Yellow, ps.Red, ps.ID)
+			fk_score_player = %d and
+			fk_score_match = %d
+		`, ps.Score, ps.Yellow, ps.Red, ps.ID, matchID)
 
 	_, err := db.Exec(statement)
 	return err

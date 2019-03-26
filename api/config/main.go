@@ -44,13 +44,12 @@ func (a *App) initializeRoutes() {
 
 	a.Router.HandleFunc("/scores", a.getScores).Methods("GET")
 	a.Router.HandleFunc("/scores", a.createScore).Methods("POST")
-	a.Router.HandleFunc("/scores", a.updateScore).Methods("PUT")
 	a.Router.HandleFunc("/scores/{id}", a.deleteScore).Methods("DELETE")
 	a.Router.HandleFunc("/scores/{matchID}", a.getScoreMatch).Methods("GET")
 
 	a.Router.HandleFunc("/previousMatches", a.getPreviousMatches).Methods("GET")
 	a.Router.HandleFunc("/previousMatches", a.createPreviousMatch).Methods("POST")
-	// a.Router.HandleFunc("/previousMatches/{id}", a.updatePreviousMatch).Methods("PUT")
+	a.Router.HandleFunc("/previousMatches/{id}", a.updatePreviousMatch).Methods("PUT")
 	a.Router.HandleFunc("/previousMatches/{id}", a.deletePreviousMatch).Methods("DELETE")
 	a.Router.HandleFunc("/previousMatches/{id}", a.getPreviousMatch).Methods("GET")
 }

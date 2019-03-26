@@ -37,6 +37,22 @@
 ```
 * http StatusCreated (201) will be sent if the player's score has been created correctly
 
+## Update a previous match
+
+* HTTP Request : ```PUT http://api.com/previousMatches/{id}```
+* ID is the match's ID you want to update
+* Send player's score data in the request body in the follow format
+``` 
+        {  
+            "player_id":      int,
+            "score":         int, 
+            "yellowCard":    int, 
+            "redCard":       int
+        }
+```
+* Even if you want to update just one field you need to fill all others in order to update correctly
+* http StatusCreated (201) will be sent if the team has been updated correctly
+
 ## Get a previous match
 
 * HTTP Request : ```GET http://api.com/previousMatches/{id}```

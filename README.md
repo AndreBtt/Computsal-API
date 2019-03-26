@@ -11,6 +11,4 @@ some text....
 ### [Score](api/components/score/SCORE.md)
 
 ### [Previous Matches](api/components/match/MATCH.md)
-
-
         
