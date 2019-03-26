@@ -24,7 +24,7 @@
             {  
 	            "name": string, 
 	            "team" string
-            }
+            },...
     ```
     * http StatusCreated (201) will be sent if the player has been created correctly
     
@@ -76,7 +76,7 @@
                     "name":      string, 
                     "photo":     string,
                     "group":     int    
-                }
+                },...
             ]
         ```
 
@@ -134,7 +134,7 @@
 
 - **Get all players score**
     * HTTP Request : ```GET http://api.com/scores```
-    * Return a list object in json format as follow ordered by ascending score order
+    * Return a list object in json format as follow ordered by decreasing score order
         ``` 
             [
                 {
@@ -180,7 +180,7 @@
                 "matchID":       int, 
                 "score":         int, 
                 "yellowCard":    int, 
-                "redCard":       int,
+                "redCard":       int
             }
     ```
     * It will be replace using the ID value, ensure it is correct
@@ -190,13 +190,13 @@
 - **Get players score in a match**
     * HTTP Request : ```GET http://api.com/scores/{matchID}```
     * matchID is the match's ID you want to get information
-    * Return a list object in json format as follow ordered by ascending score order
+    * Return a list object in json format as follow ordered by decreasing score order
         ``` 
             {
                 "player" {
                     "id":    int,
                     "name":  string,
-                    "team":  string,
+                    "team":  string
                 }
                 "score":         int,
                 "yellowCard":    int,
