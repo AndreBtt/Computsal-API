@@ -113,3 +113,7 @@ func drawMatch(match PreviousMatchQuery) PreviousMatchList {
 
 	return currentMatch
 }
+
+func (matchDetails *PreviousMatch) GetPreviousMatch(db *sql.DB) error {
+	return nil
+}

@@ -32,15 +32,16 @@
     * http StatusOK (200) will be sent if the player has been deleted correctly
 
 - **Update a player**
-    * HTTP Request : ```PUT http://api.com/players/{ID}```
-    * ID is the player's ID you want to update
+    * HTTP Request : ```PUT http://api.com/players```
     * Send player's data in the request body in the follow format
     ``` 
             {  
-	            "name" string 
-	            "team" string
+                "id"    int
+	            "name"  string 
+	            "team"  string
             }
     ```
+    * It will be replace using the ID value, ensure it is correct
     * Even if you want to update just one field you need to fill all others in order to update player correctly
     * http StatusCreated (201) will be sent if the player has been updated correctly
 
@@ -94,16 +95,17 @@
     * http StatusOK (200) will be sent if the team has been deleted correctly
 
 - **Update a team**
-    * HTTP Request : ```PUT http://api.com/teams/{name}```
-    * Name is the team's name you want to update
+    * HTTP Request : ```PUT http://api.com/teams```
     * Send team's data in the request body in the follow format
     ``` 
             {  
+                "id"        int
                 "name"      string 
                 "photo"     string 
                 "group"     int
             }
     ```
+    * It will be replace using the ID value, ensure it is correct
     * Even if you want to update just one field you need to fill all others in order to update team correctly
     * http StatusCreated (201) will be sent if the team has been updated correctly
 

@@ -321,6 +321,22 @@ func (a *App) getPreviousMatches(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, previousMatches)
 }
 
+func (a *App) getPreviousMatch(w http.ResponseWriter, r *http.Request) {
+	var matchDetails match.PreviousMatch
+	err := matchDetails.GetPreviousMatch(a.DB)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Match not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, matchDetails)
+}
+
 func (a *App) createPreviousMatch(w http.ResponseWriter, r *http.Request) {
 
 }
