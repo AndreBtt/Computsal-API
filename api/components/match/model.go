@@ -4,7 +4,7 @@ import (
 	score "github.com/AndreBtt/Computsal/api/components/score"
 )
 
-type PreviousMatchQuery struct {
+type PreviousMatchesQuery struct {
 	ID    int
 	Type  int
 	Phase int
@@ -12,6 +12,20 @@ type PreviousMatchQuery struct {
 	Team2 string
 	Team  string
 	Score int
+}
+
+type PreviousMatchQuery struct {
+	ID         int
+	Team1      string
+	Team2      string
+	Type       int
+	Phase      int
+	Score      int
+	Red        int
+	Yellow     int
+	PlayerName string
+	PlayerID   int
+	Team       string
 }
 
 type PreviousMatchList struct {
@@ -35,6 +49,6 @@ type PreviousMatch struct {
 	Score1      int                 `json:"score1"`
 	Score2      int                 `json:"score2"`
 	Type        int                 `json:"type"`
-	Group       int                 `json:"group"`
-	PlayerScore []score.PlayerScore `json:"player"`
+	Phase       int                 `json:"phase"`
+	PlayerScore []score.PlayerScore `json:"players"`
 }

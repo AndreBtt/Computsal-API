@@ -322,9 +322,14 @@ func (a *App) getPreviousMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getPreviousMatch(w http.ResponseWriter, r *http.Request) {
-	var matchDetails match.PreviousMatch
-	err := matchDetails.GetPreviousMatch(a.DB)
+	vars := mux.Vars(r)
+	matchID, err := strconv.Atoi(vars["id"])
 	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid match ID")
+		return
+	}
+	matchDetails := match.PreviousMatch{ID: matchID}
+	if err = matchDetails.GetPreviousMatch(a.DB); err != nil {
 		switch err {
 		case sql.ErrNoRows:
 			respondWithError(w, http.StatusNotFound, "Match not found")
@@ -337,6 +342,23 @@ func (a *App) getPreviousMatch(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, matchDetails)
 }
 
-func (a *App) createPreviousMatch(w http.ResponseWriter, r *http.Request) {
+func (a *App) deletePreviousMatch(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	matchID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid match ID")
+		return
+	}
 
+	if err := match.DeletePreviousMatch(a.DB, matchID); err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Match Not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
