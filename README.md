@@ -8,11 +8,13 @@
     * HTTP Request : ```GET http://api.com/players```
     * Return a list of object in json format as follow
         ``` 
-            {
-                "id"   int    
-	            "name" string 
-	            "team" string
-            }
+            [
+                {
+                    "id":   int,    
+                    "name": string, 
+                    "team": string
+                }
+            ]
         ```
 
 - **Create a player**
@@ -20,7 +22,7 @@
     * Send player's data in the request body in the follow format 
     ``` 
             {  
-	            "name" string 
+	            "name": string, 
 	            "team" string
             }
     ```
@@ -36,9 +38,9 @@
     * Send player's data in the request body in the follow format
     ``` 
             {  
-                "id"    int
-	            "name"  string 
-	            "team"  string
+                "id":       int,
+	            "name":     string, 
+	            "team":     string
             }
     ```
     * It will be replace using the ID value, ensure it is correct
@@ -51,14 +53,14 @@
     * Return a player object in json format as follow
         ``` 
             {
-                "id"            int
-                "name"          string
-                "team"          string
-                "teamPhoto"     string
-                "score"         int
-                "yellowCard"    int
-                "redCard"       int
-                "captain"       bool
+                "id":            int,
+                "name":          string,
+                "team":          string,
+                "teamPhoto":     string,
+                "score":         int,
+                "yellowCard":    int,
+                "redCard":       int,
+                "captain":       bool
             }
         ```
 
@@ -68,12 +70,14 @@
     * HTTP Request : ```GET http://api.com/teams```
     * Return a list of object in json format as follow
         ``` 
-            {
-                "id"        int    
-                "name"      string 
-                "photo"     string 
-                "group"     int    
-            }
+            [
+                {
+                    "id":        int,    
+                    "name":      string, 
+                    "photo":     string,
+                    "group":     int    
+                }
+            ]
         ```
 
 - **Create a team**
@@ -81,9 +85,9 @@
     * Send team's data in the request body in the follow format 
     ``` 
             {  
-                "name"      string 
-                "photo"     string 
-                "group"     int
+                "name":      string,
+                "photo":     string, 
+                "group":     int
             }
     ```
     * http StatusCreated (201) will be sent if the team has been created correctly
@@ -99,10 +103,10 @@
     * Send team's data in the request body in the follow format
     ``` 
             {  
-                "id"        int
-                "name"      string 
-                "photo"     string 
-                "group"     int
+                "id":        int,
+                "name":      string,
+                "photo":     string, 
+                "group":     int
             }
     ```
     * It will be replace using the ID value, ensure it is correct
@@ -116,12 +120,14 @@
     * HTTP Request : ```GET http://api.com/teams/{name}/players```
     * Name is the team's name you want to get players
     * Return a list of player object in json format as follow
-        ``` 
-            {
-                "id"    int    
-	            "name"  string 
-	            "team"  string
-            }
+        ```
+            [ 
+                {
+                    "id":    int,    
+                    "name":  string, 
+                    "team":  string
+                },...
+            ]
         ```
 
 ### **Score**
@@ -130,16 +136,18 @@
     * HTTP Request : ```GET http://api.com/scores```
     * Return a list object in json format as follow ordered by ascending score order
         ``` 
-            {
-                "player" {
-                    "id"    int
-                    "name"  string
-                    "team"  string
-                }
-                "score"         int
-                "yellowCard"    int
-                "redCard"       int
-            }
+            [
+                {
+                    "player" {
+                        "id":    int,
+                        "name":  string,
+                        "team":  string
+                    }
+                    "score":         int,
+                    "yellowCard":    int,
+                    "redCard":       int
+                },...
+            ]
         ```
 
 - **Create a player score**
@@ -147,12 +155,12 @@
     * Send player's score data in the request body in the follow format 
     ``` 
             {  
-                "id"            int 
-                "playerID"      int 
-                "matchID"       int 
-                "score"         int 
-                "yellowCard"    int 
-                "redCard"       int 
+                "id":            int,
+                "playerID":      int, 
+                "matchID":       int, 
+                "score":         int, 
+                "yellowCard":    int, 
+                "redCard":       int 
             }
     ```
     * http StatusCreated (201) will be sent if the player's score has been created correctly
@@ -167,12 +175,12 @@
     * Send player's score data in the request body in the follow format
     ``` 
             {  
-                "id"            int 
-                "playerID"      int 
-                "matchID"       int 
-                "score"         int 
-                "yellowCard"    int 
-                "redCard"       int 
+                "id":            int,
+                "playerID":      int, 
+                "matchID":       int, 
+                "score":         int, 
+                "yellowCard":    int, 
+                "redCard":       int,
             }
     ```
     * It will be replace using the ID value, ensure it is correct
@@ -186,13 +194,13 @@
         ``` 
             {
                 "player" {
-                    "id"    int
-                    "name"  string
-                    "team"  string
+                    "id":    int,
+                    "name":  string,
+                    "team":  string,
                 }
-                "score"         int
-                "yellowCard"    int
-                "redCard"       int
+                "score":         int,
+                "yellowCard":    int,
+                "redCard":       int
             }
         ```
 
@@ -204,11 +212,64 @@
     * Return a list object in json format as follow
         ``` 
             {
-                "id"        int    
-                "team1"     string 
-                "team2"     string 
-                "score1"    int    
-                "score2"    int    
-                "type"      int    
-                "phase"     int    
+                "id":        int,    
+                "team1":     string, 
+                "team2":     string,
+                "score1":    int,    
+                "score2":    int,    
+                "type":      int,    
+                "phase":     int    
             }
+
+
+- **Create a previous match**
+    * HTTP Request : ```POST http://api.com/previousMatches```
+    * Send data in the request body in the follow format 
+    ``` 
+        {
+            "team1" : string,
+            "team2" : string,
+            "type"  : int,
+            "players" : [
+                {
+                    "player_id": int,
+                    "score": int,
+                    "yellowCard": int,
+                    "redCard": int
+                },...
+            ]
+        }
+    ```
+    * http StatusCreated (201) will be sent if the player's score has been created correctly
+
+- **Get a previous match**
+    * HTTP Request : ```GET http://api.com/previousMatches/{id}```
+    * ID is the match's ID you want to get information
+    * Return a list object in json format as follow
+        ``` 
+            {
+                "id": int,
+                "team1": string,
+                "team2": string,
+                "yellowCard1": int,
+                "yellowCard2": int,
+                "redCard1": int,
+                "redCard2": int,
+                "score1": int,
+                "score2": int,
+                "type": int,
+                "phase": int,
+                "players": [
+                    {
+                        "player": {
+                            "id": int,
+                            "name": string,
+                            "team": string
+                        },
+                        "score": int,
+                        "yellowCard": int,
+                        "redCard": int
+                    },...
+                ]
+            }
+        ```

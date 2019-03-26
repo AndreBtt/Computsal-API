@@ -19,3 +19,10 @@ type PlayerScoreTable struct {
 	Yellow   int `json:"yellowCard"`
 	Red      int `json:"redCard"`
 }
+
+type PlayerIDScore struct {
+	ID     int `json:"player_id"`
+	Score  int `json:"score"`
+	Yellow int `json:"yellowCard"`
+	Red    int `json:"redCard"`
+}

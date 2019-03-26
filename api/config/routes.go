@@ -362,3 +362,20 @@ func (a *App) deletePreviousMatch(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
+
+func (a *App) createPreviousMatch(w http.ResponseWriter, r *http.Request) {
+	match := match.NewMatch{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&match); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := match.CreateMatch(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, match)
+}

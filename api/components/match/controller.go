@@ -3,6 +3,7 @@ package match
 import (
 	"database/sql"
 	"fmt"
+	"strconv"
 
 	score "github.com/AndreBtt/Computsal/api/components/score"
 )
@@ -164,6 +165,7 @@ func (matchDetails *PreviousMatch) GetPreviousMatch(db *sql.DB) error {
 	matchDetails.Team2 = matchQuery[0].Team2
 	matchDetails.Phase = matchQuery[0].Phase
 	matchDetails.Type = matchQuery[0].Type
+	matchDetails.PlayerScore = []score.PlayerScore{}
 
 	for _, elem := range matchQuery {
 		if elem.Team == "flag_no_team" {
@@ -197,4 +199,81 @@ func DeletePreviousMatch(db *sql.DB, matchID int) error {
 	statement := fmt.Sprintf("DELETE FROM previous_match WHERE id=%d", matchID)
 	_, err := db.Exec(statement)
 	return err
+}
+
+func (match *NewMatch) CreateMatch(db *sql.DB) error {
+	phase, err := getMatchPhase(match, db)
+	if err != nil {
+		return err
+	}
+
+	matchTable := PreviousMatchTable{
+		Team1: match.Team1,
+		Team2: match.Team2,
+		Type:  match.Type,
+		Phase: phase,
+	}
+
+	statement := fmt.Sprintf(`
+		INSERT INTO 
+			previous_match
+				(fk_match_team1, fk_match_team2, match_type, phase) 
+		VALUES
+			('%s', '%s', %d, %d)`,
+		matchTable.Team1, matchTable.Team2, matchTable.Type, matchTable.Phase)
+	if _, err := db.Exec(statement); err != nil {
+		return err
+	}
+
+	if len(match.PlayerScore) == 0 {
+		return nil
+	}
+
+	var matchID int
+	if err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&matchID); err != nil {
+		return err
+	}
+
+	statement = generateStatement(match, matchID)
+	_, err = db.Exec(statement)
+	return err
+}
+
+func getMatchPhase(match *NewMatch, db *sql.DB) (int, error) {
+	var phase int
+	statement := fmt.Sprintf(`
+		SELECT
+			coalesce(min(phase),0) AS phase
+		FROM
+			previous_match
+		WHERE 
+			fk_match_team1 = '%s' OR 
+			fk_match_team2 = '%s' OR
+			fk_match_team1 = '%s' OR 
+			fk_match_team2 = '%s'`,
+		match.Team1, match.Team1, match.Team2, match.Team2)
+
+	if err := db.QueryRow(statement).Scan(&phase); err != nil {
+		return 0, err
+	}
+
+	return phase + 1, nil
+}
+
+func generateStatement(match *NewMatch, matchID int) string {
+	statement := fmt.Sprintf(`
+		INSERT INTO
+			player_match
+				(fk_score_player, fk_score_match, quantity, yellow, red)
+		VALUES`)
+
+	for _, elem := range match.PlayerScore {
+		values := "(" + strconv.Itoa(elem.ID) + ", " +
+			strconv.Itoa(matchID) + ", " + strconv.Itoa(elem.Score) +
+			", " + strconv.Itoa(elem.Yellow) + ", " + strconv.Itoa(elem.Red) + "),"
+		statement += values
+	}
+
+	statement = statement[:len(statement)-1]
+	return statement
 }
