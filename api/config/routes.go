@@ -351,7 +351,7 @@ func (a *App) updatePreviousMatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ps := score.PlayerIDScore{}
+	ps := []score.PlayerIDScore{}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&ps); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -359,12 +359,12 @@ func (a *App) updatePreviousMatch(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := ps.UpdateScore(a.DB, matchID); err != nil {
+	if err := score.UpdateScores(a.DB, matchID, ps); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, ps)
+	respondWithJSON(w, http.StatusCreated, map[string]string{"result": "success"})
 }
 
 /* ---------------- NEXT MATCHES ROUTES ----------------- */

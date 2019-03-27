@@ -89,39 +89,73 @@ func GetScores(db *sql.DB) ([]PlayerScore, error) {
 	return playersScore, nil
 }
 
-func DeleteScore(db *sql.DB, scoreID int) error {
+func DeleteScores(db *sql.DB, matchID int, scores []PlayerIDScore) error {
 	statement := fmt.Sprintf(`
 		DELETE FROM
 			player_match
-		WHERE 
-			id = %d
-		`, scoreID)
+		WHERE `)
+	for _, elem := range scores {
+		s := fmt.Sprintf("(fk_score_player = %d AND fk_score_match = %d) OR ", elem.ID, matchID)
+		statement += s
+	}
 
+	statement = statement[:len(statement)-3]
 	_, err := db.Exec(statement)
 	return err
 }
 
-func (ps *PlayerIDScore) UpdateScore(db *sql.DB, matchID int) error {
-	// if the player does not have data in a match he should be deleted
-	if ps.Score == 0 && ps.Yellow == 0 && ps.Red == 0 {
-		err := DeleteScore(db, ps.ID)
-		return err
+func UpdateScores(db *sql.DB, matchID int, scores []PlayerIDScore) error {
+	deleteScores := []PlayerIDScore{}
+	updateScores := []PlayerIDScore{}
+
+	for _, elem := range scores {
+		// if the player does not have data in a match he should be deleted
+		if elem.Score == 0 && elem.Yellow == 0 && elem.Red == 0 {
+			deleteScores = append(deleteScores, elem)
+		} else {
+			updateScores = append(updateScores, elem)
+		}
 	}
 
-	statement := fmt.Sprintf(`
-		UPDATE
-			player_match
-		SET
-			quantity = %d,
-			yellow = %d,
-			red = %d
-		WHERE
-			fk_score_player = %d and
-			fk_score_match = %d
-		`, ps.Score, ps.Yellow, ps.Red, ps.ID, matchID)
+	if len(deleteScores) > 0 {
+		if err := DeleteScores(db, matchID, deleteScores); err != nil {
+			return err
+		}
+	}
 
-	_, err := db.Exec(statement)
-	return err
+	if len(updateScores) > 0 {
+		tx, err := db.Begin()
+		if err != nil {
+			return err
+		}
+
+		for _, elem := range updateScores {
+			statement := fmt.Sprintf(`
+				UPDATE
+					player_match
+				SET
+					quantity = %d,
+					yellow = %d,
+					red = %d
+				WHERE
+					fk_score_player = %d and
+					fk_score_match = %d
+				`, elem.Score, elem.Yellow, elem.Red, elem.ID, matchID)
+
+			if _, err := tx.Exec(statement); err != nil {
+				if rollbackErr := tx.Rollback(); rollbackErr != nil {
+					return rollbackErr
+				}
+				return err
+			}
+		}
+
+		if err := tx.Commit(); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (ps *PlayerScoreTable) CreateScore(db *sql.DB) error {
