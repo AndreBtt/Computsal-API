@@ -22,9 +22,7 @@
 * Send data in the request body in the follow format 
 ``` 
     {
-        "team1" : string,
-        "team2" : string,
-        "type"  : int,
+        "next_match_id":    int,
         "players" : [
             {
                 "player_id": int,
@@ -35,6 +33,7 @@
         ]
     }
 ```
+* The match which has the "next_match_id" value will be deleted
 * http StatusCreated (201) will be sent if the player's score has been created correctly
 
 ## Update a previous match

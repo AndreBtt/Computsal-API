@@ -250,26 +250,6 @@ func (a *App) getScores(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, playerScore)
 }
 
-func (a *App) deleteScore(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	scoreID, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid player ID")
-		return
-	}
-	if err := score.DeleteScore(a.DB, scoreID); err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			respondWithError(w, http.StatusNotFound, "Not found")
-		default:
-			respondWithError(w, http.StatusInternalServerError, err.Error())
-		}
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
-}
-
 func (a *App) createScore(w http.ResponseWriter, r *http.Request) {
 	var ps score.PlayerScoreTable
 	decoder := json.NewDecoder(r.Body)

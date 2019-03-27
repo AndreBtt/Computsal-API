@@ -54,9 +54,7 @@ type PreviousMatch struct {
 }
 
 type NewMatch struct {
-	Team1       string                `json:"team1"`
-	Team2       string                `json:"team2"`
-	Type        int                   `json:"type"`
+	NextMatchID int                   `json:"next_match_id"`
 	PlayerScore []score.PlayerIDScore `json:"players"`
 }
 
@@ -66,4 +64,10 @@ type PreviousMatchTable struct {
 	Team2 string `json:"team2"`
 	Type  int    `json:"type"`
 	Phase int    `json:"phase"`
+}
+
+type NextMatch struct {
+	Team1 string `json:"team1"`
+	Team2 string `json:"team2"`
+	Type  int    `json:"type"`
 }

@@ -202,25 +202,47 @@ func DeletePreviousMatch(db *sql.DB, matchID int) error {
 }
 
 func (match *NewMatch) CreateMatch(db *sql.DB) error {
-	phase, err := getMatchPhase(match, db)
+	var matchDetails NextMatch
+	statement := fmt.Sprintf(`
+		SELECT 
+			fk_next_team1, fk_next_team2, type
+		FROM
+			next_match
+		WHERE id = %d 
+		`, match.NextMatchID)
+	if err := db.QueryRow(statement).Scan(&matchDetails.Team1, &matchDetails.Team2, &matchDetails.Type); err != nil {
+		return err
+	}
+
+	phase, err := getMatchPhase(matchDetails, db)
 	if err != nil {
 		return err
 	}
 
-	matchTable := PreviousMatchTable{
-		Team1: match.Team1,
-		Team2: match.Team2,
-		Type:  match.Type,
-		Phase: phase,
-	}
-
-	statement := fmt.Sprintf(`
+	statement = fmt.Sprintf(`
 		INSERT INTO 
 			previous_match
 				(fk_match_team1, fk_match_team2, match_type, phase) 
 		VALUES
-			('%s', '%s', %d, %d)`,
-		matchTable.Team1, matchTable.Team2, matchTable.Type, matchTable.Phase)
+			('%s', '%s', %d, %d);
+		`,
+		matchDetails.Team1, matchDetails.Team2, matchDetails.Type, phase)
+	if _, err := db.Exec(statement); err != nil {
+		return err
+	}
+
+	var matchID int
+	if err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&matchID); err != nil {
+		return err
+	}
+
+	statement = fmt.Sprintf(`
+		DELETE FROM
+			next_match
+		WHERE 
+			id = %d
+		`,
+		match.NextMatchID)
 	if _, err := db.Exec(statement); err != nil {
 		return err
 	}
@@ -229,17 +251,12 @@ func (match *NewMatch) CreateMatch(db *sql.DB) error {
 		return nil
 	}
 
-	var matchID int
-	if err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&matchID); err != nil {
-		return err
-	}
-
 	statement = generateStatement(match, matchID)
 	_, err = db.Exec(statement)
 	return err
 }
 
-func getMatchPhase(match *NewMatch, db *sql.DB) (int, error) {
+func getMatchPhase(match NextMatch, db *sql.DB) (int, error) {
 	var phase int
 	statement := fmt.Sprintf(`
 		SELECT

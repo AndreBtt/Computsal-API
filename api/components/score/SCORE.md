@@ -33,11 +33,6 @@
 ```
 * http StatusCreated (201) will be sent if the player's score has been created correctly
 
-## Delete a player score
-* HTTP Request : ```DELETE http://api.com/scores/{id}```
-* ID is the player's score ID you want to delete
-* http StatusOK (200) will be sent if the team has been deleted correctly
-
 ## Get players score in a match
 * HTTP Request : ```GET http://api.com/scores/{matchID}```
 * matchID is the match's ID you want to get information
