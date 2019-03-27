@@ -366,3 +366,36 @@ func (a *App) updatePreviousMatch(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, http.StatusCreated, ps)
 }
+
+/* ---------------- NEXT MATCHES ROUTES ----------------- */
+
+func (a *App) updateNextMatches(w http.ResponseWriter, r *http.Request) {
+	nextMatches := []match.NextMatchUpdate{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&nextMatches); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := match.UpdateNextMatches(a.DB, nextMatches); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, nextMatches)
+}
+
+func (a *App) getNextMatches(w http.ResponseWriter, r *http.Request) {
+	nextMatches, err := match.GetNextMatches(a.DB)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Matches not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	respondWithJSON(w, http.StatusOK, nextMatches)
+}

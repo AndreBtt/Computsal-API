@@ -202,6 +202,12 @@ func DeletePreviousMatch(db *sql.DB, matchID int) error {
 }
 
 func (match *NewMatch) CreateMatch(db *sql.DB) error {
+	/*
+		get match details
+			Team1
+			Team2
+			Match type
+	*/
 	var matchDetails NextMatch
 	statement := fmt.Sprintf(`
 		SELECT 
@@ -214,11 +220,13 @@ func (match *NewMatch) CreateMatch(db *sql.DB) error {
 		return err
 	}
 
+	// get the phase with the lowest number between the two teams
 	phase, err := getMatchPhase(matchDetails, db)
 	if err != nil {
 		return err
 	}
 
+	// create the previous match with the data we got
 	statement = fmt.Sprintf(`
 		INSERT INTO 
 			previous_match
@@ -236,14 +244,8 @@ func (match *NewMatch) CreateMatch(db *sql.DB) error {
 		return err
 	}
 
-	statement = fmt.Sprintf(`
-		DELETE FROM
-			next_match
-		WHERE 
-			id = %d
-		`,
-		match.NextMatchID)
-	if _, err := db.Exec(statement); err != nil {
+	// delete the next match related to the previous match
+	if err := DeleteNextMatch(db, match.NextMatchID); err != nil {
 		return err
 	}
 
@@ -251,6 +253,7 @@ func (match *NewMatch) CreateMatch(db *sql.DB) error {
 		return nil
 	}
 
+	// add all players score and card to the new previous match
 	statement = generateStatement(match, matchID)
 	_, err = db.Exec(statement)
 	return err
@@ -293,4 +296,74 @@ func generateStatement(match *NewMatch, matchID int) string {
 
 	statement = statement[:len(statement)-1]
 	return statement
+}
+
+func DeleteNextMatch(db *sql.DB, matchID int) error {
+	statement := fmt.Sprintf(`
+		DELETE FROM
+			next_match
+		WHERE 
+			id = %d
+		`,
+		matchID)
+	_, err := db.Exec(statement)
+	return err
+}
+
+func UpdateNextMatches(db *sql.DB, matches []NextMatchUpdate) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	// delete all matches
+	if _, err := tx.Exec(`TRUNCATE TABLE next_match`); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	// generate the statement that will create all new next matches
+	statement := fmt.Sprintf(`
+		INSERT INTO
+			next_match
+				(fk_next_team1, fk_next_team2, time, type)
+		VALUES`)
+	for _, elem := range matches {
+		values := "( \"" + elem.Team1 + "\", \"" + elem.Team2 +
+			"\", " + strconv.Itoa(elem.Time) + ", " + strconv.Itoa(elem.Type) + "),"
+		statement += values
+	}
+
+	statement = statement[:len(statement)-1]
+	if _, err := tx.Exec(statement); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	return tx.Commit()
+}
+
+func GetNextMatches(db *sql.DB) ([]NextMatchTable, error) {
+	statement := fmt.Sprintf(`SELECT id, fk_next_team1, fk_next_team2, time, type FROM next_match`)
+	rows, err := db.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	matches := []NextMatchTable{}
+
+	for rows.Next() {
+		var newMatch NextMatchTable
+		if err := rows.Scan(&newMatch.ID, &newMatch.Team1, &newMatch.Team2, &newMatch.Time, &newMatch.Type); err != nil {
+			return nil, err
+		}
+		matches = append(matches, newMatch)
+	}
+
+	return matches, nil
 }

@@ -5,6 +5,7 @@
 * HTTP Request : ```GET http://api.com/previousMatches```
 * Return a list object in json format as follow
     ``` 
+    [
         {
             "id":        int,    
             "team1":     string, 
@@ -13,8 +14,9 @@
             "score2":    int,    
             "type":      int,    
             "phase":     int    
-        }
-
+        },...
+    ]
+    ```
 
 ## Create a previous match
 

@@ -51,6 +51,9 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/previousMatches/{id}", a.updatePreviousMatch).Methods("PUT")
 	a.Router.HandleFunc("/previousMatches/{id}", a.deletePreviousMatch).Methods("DELETE")
 	a.Router.HandleFunc("/previousMatches/{id}", a.getPreviousMatch).Methods("GET")
+
+	a.Router.HandleFunc("/nextMatches", a.updateNextMatches).Methods("PUT")
+	a.Router.HandleFunc("/nextMatches", a.getNextMatches).Methods("GET")
 }
 
 func (a *App) Run(addr string) {
