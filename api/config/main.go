@@ -30,8 +30,8 @@ func (a *App) Initialize(user, password, dbname string) {
 
 func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/players", a.getPlayers).Methods("GET")
-	a.Router.HandleFunc("/players", a.createPlayer).Methods("POST")
-	a.Router.HandleFunc("/players", a.updatePlayer).Methods("PUT")
+	a.Router.HandleFunc("/players", a.createPlayers).Methods("POST")
+	a.Router.HandleFunc("/players", a.updatePlayers).Methods("PUT")
 	a.Router.HandleFunc("/players/{id}", a.deletePlayer).Methods("DELETE")
 	a.Router.HandleFunc("/players/{id}", a.getPlayer).Methods("GET")
 
@@ -52,7 +52,7 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/groups", a.createGroup).Methods("POST")
 	a.Router.HandleFunc("/groups/{id}", a.updateGroup).Methods("PUT")
 	a.Router.HandleFunc("/groups/{id}", a.deleteGroup).Methods("DELETE")
-	a.Router.HandleFunc("/groups/{id}", a.getGroup).Methods("GET")
+	// a.Router.HandleFunc("/groups/{id}", a.getGroup).Methods("GET")
 
 	a.Router.HandleFunc("/scores", a.getScores).Methods("GET")
 

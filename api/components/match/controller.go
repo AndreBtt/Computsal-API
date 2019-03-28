@@ -311,19 +311,19 @@ func DeleteNextMatch(db *sql.DB, matchID int) error {
 }
 
 func UpdateNextMatches(db *sql.DB, matches []NextMatchUpdate) error {
-		// elimination round
+	// elimination round
 	if matches[0].Type == 1 {
-		err := updateEliminationPhase(db *sql.DB, matches []NextMatchUpdate)
+		err := updateEliminationPhase(db, matches)
 		return err
 	} else {
 		// group phase round
-		err := updateGroupPhase(db *sql.DB, matches []NextMatchUpdate)
+		err := updateGroupPhase(db, matches)
 		return err
 	}
 }
 
 func updateEliminationPhase(db *sql.DB, matches []NextMatchUpdate) error {
-
+	return fmt.Errorf("TODO")
 }
 
 func updateGroupPhase(db *sql.DB, matches []NextMatchUpdate) error {

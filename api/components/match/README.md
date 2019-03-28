@@ -41,7 +41,7 @@
 ## Update a previous match
 
 * HTTP Request : ```PUT http://api.com/previousMatches/{id}```
-* ID is the match's ID you want to update
+* ID is the match ID you want to update
 * Send an array of player's score data in the request body in the follow format
 ``` 
     [
@@ -60,7 +60,7 @@
 ## Get a previous match
 
 * HTTP Request : ```GET http://api.com/previousMatches/{id}```
-* ID is the match's ID you want to get information
+* ID is the match ID you want to get information
 * Return a list object in json format as follow
     ``` 
         {

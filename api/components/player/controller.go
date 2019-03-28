@@ -5,29 +5,34 @@ import (
 	"fmt"
 )
 
-func (p *PlayerTable) CreatePlayer(db *sql.DB) error {
-	statement := fmt.Sprintf("INSERT INTO player(name, fk_player_team) VALUES('%s', '%s')", p.Name, p.Team)
-	if _, err := db.Exec(statement); err != nil {
-		return err
+func CreatePlayers(db *sql.DB, players []PlayerCreate) error {
+	statement := fmt.Sprintf("INSERT INTO player(name, fk_player_team) VALUES")
+	for _, elem := range players {
+		values := fmt.Sprintf(" ('%s', '%s'),", elem.Name, elem.Team)
+		statement += values
 	}
 
-	if err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&p.ID); err != nil {
-		return err
+	statement = statement[:len(statement)-1]
+
+	_, err := db.Exec(statement)
+	return err
+}
+
+func DeletePlayer(db *sql.DB, playerID int) error {
+	statement := fmt.Sprintf("DELETE FROM player WHERE id=%d", playerID)
+	_, err := db.Exec(statement)
+	return err
+}
+
+func UpdatePlayers(db *sql.DB, players []PlayerUpdate) error {
+	for _, elem := range players {
+		statement := fmt.Sprintf("UPDATE player SET name='%s' WHERE id=%d", elem.Name, elem.ID)
+		if _, err := db.Exec(statement); err != nil {
+			return err
+		}
 	}
 
 	return nil
-}
-
-func (p *PlayerTable) DeletePlayer(db *sql.DB) error {
-	statement := fmt.Sprintf("DELETE FROM player WHERE id=%d", p.ID)
-	_, err := db.Exec(statement)
-	return err
-}
-
-func (p *PlayerTable) UpdatePlayer(db *sql.DB) error {
-	statement := fmt.Sprintf("UPDATE player SET name='%s' WHERE id=%d", p.Name, p.ID)
-	_, err := db.Exec(statement)
-	return err
 }
 
 func (p *Player) GetPlayer(db *sql.DB) error {

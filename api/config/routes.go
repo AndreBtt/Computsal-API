@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	group "github.com/AndreBtt/Computsal/api/components/group"
 	match "github.com/AndreBtt/Computsal/api/components/match"
 	player "github.com/AndreBtt/Computsal/api/components/player"
 	score "github.com/AndreBtt/Computsal/api/components/score"
@@ -15,21 +16,21 @@ import (
 
 /* ---------------- PLAYER ROUTES --------------- */
 
-func (a *App) createPlayer(w http.ResponseWriter, r *http.Request) {
-	var p player.PlayerTable
+func (a *App) createPlayers(w http.ResponseWriter, r *http.Request) {
+	var players []player.PlayerCreate
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&p); err != nil {
+	if err := decoder.Decode(&players); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 	defer r.Body.Close()
 
-	if err := p.CreatePlayer(a.DB); err != nil {
+	if err := player.CreatePlayers(a.DB, players); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, p)
+	respondWithJSON(w, http.StatusCreated, map[string]string{"result": "success"})
 }
 
 func (a *App) deletePlayer(w http.ResponseWriter, r *http.Request) {
@@ -39,9 +40,8 @@ func (a *App) deletePlayer(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Invalid player ID")
 		return
 	}
-	p := player.PlayerTable{ID: playerID}
 
-	if err := p.DeletePlayer(a.DB); err != nil {
+	if err := player.DeletePlayer(a.DB, playerID); err != nil {
 		switch err {
 		case sql.ErrNoRows:
 			respondWithError(w, http.StatusNotFound, "Player not found")
@@ -54,21 +54,21 @@ func (a *App) deletePlayer(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
-func (a *App) updatePlayer(w http.ResponseWriter, r *http.Request) {
-	var p player.PlayerTable
+func (a *App) updatePlayers(w http.ResponseWriter, r *http.Request) {
+	var players []player.PlayerUpdate
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&p); err != nil {
+	if err := decoder.Decode(&players); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 	defer r.Body.Close()
 
-	if err := p.UpdatePlayer(a.DB); err != nil {
+	if err := player.UpdatePlayers(a.DB, players); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, p)
+	respondWithJSON(w, http.StatusCreated, map[string]string{"result": "success"})
 }
 
 func (a *App) getPlayers(w http.ResponseWriter, r *http.Request) {
@@ -330,4 +330,83 @@ func (a *App) getNextMatches(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	respondWithJSON(w, http.StatusOK, nextMatches)
+}
+
+/* ---------------- GROUP ROUTES ----------------- */
+
+func (a *App) getGroups(w http.ResponseWriter, r *http.Request) {
+	groups, err := group.GetGroups(a.DB)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Groups not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	respondWithJSON(w, http.StatusOK, groups)
+}
+
+func (a *App) updateGroup(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	groupID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid group ID")
+		return
+	}
+
+	gp := []group.GroupUpdateTeam{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&gp); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := group.UpdateGroup(a.DB, groupID, gp); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, map[string]string{"result": "success"})
+
+}
+
+func (a *App) deleteGroup(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	groupID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid group ID")
+		return
+	}
+
+	if err := group.DeleteGroup(a.DB, groupID); err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Team not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+}
+
+func (a *App) createGroup(w http.ResponseWriter, r *http.Request) {
+	teams := []group.GroupCreate{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&teams); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := group.CreateGroup(a.DB, teams); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, map[string]string{"result": "success"})
 }

@@ -18,7 +18,7 @@
         ]
     ```
 * HTTP Request : ```GET http://api.com/scores/{matchID}```
-* matchID is the match's ID you want to get information
+* matchID is the match ID you want to get information
 * Return a list object in json format as follow ordered by decreasing score order
     ``` 
         {

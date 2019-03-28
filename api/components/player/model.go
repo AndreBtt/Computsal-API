@@ -6,6 +6,16 @@ type PlayerTable struct {
 	Team string `json:"team"`
 }
 
+type PlayerCreate struct {
+	Name string `json:"name"`
+	Team string `json:"team"`
+}
+
+type PlayerUpdate struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
 type Player struct {
 	ID           int    `json:"id"`
 	Name         string `json:"name"`
