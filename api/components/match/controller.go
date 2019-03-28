@@ -311,6 +311,22 @@ func DeleteNextMatch(db *sql.DB, matchID int) error {
 }
 
 func UpdateNextMatches(db *sql.DB, matches []NextMatchUpdate) error {
+		// elimination round
+	if matches[0].Type == 1 {
+		err := updateEliminationPhase(db *sql.DB, matches []NextMatchUpdate)
+		return err
+	} else {
+		// group phase round
+		err := updateGroupPhase(db *sql.DB, matches []NextMatchUpdate)
+		return err
+	}
+}
+
+func updateEliminationPhase(db *sql.DB, matches []NextMatchUpdate) error {
+
+}
+
+func updateGroupPhase(db *sql.DB, matches []NextMatchUpdate) error {
 	tx, err := db.Begin()
 	if err != nil {
 		return err

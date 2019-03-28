@@ -4,14 +4,13 @@
 
 some text....
 
-### [Players](api/components/player/PLAYER.md)
+### [Players](api/components/player/README.md)
 
-### [Teams](api/components/team/TEAM.md)
+### [Teams](api/components/team/README.md)
 
-### [Score](api/components/score/SCORE.md)
+### [Score](api/components/score/README.md)
 
-### [Previous Matches](api/components/match/PREVMATCH.md)
+### [Matches](api/components/match/README.md)
 
-### [Next Matches](api/components/match/NEXTMATCH.md)
 
         

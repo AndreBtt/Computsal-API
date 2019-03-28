@@ -39,18 +39,22 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/teams", a.createTeam).Methods("POST")
 	a.Router.HandleFunc("/teams", a.updateTeam).Methods("PUT")
 	a.Router.HandleFunc("/teams/{id}", a.deleteTeam).Methods("DELETE")
+	// falta codar de forma correta o getTeam com name sendo o ID
 	a.Router.HandleFunc("/teams/{name}", a.getTeam).Methods("GET")
-	a.Router.HandleFunc("/teams/{name}/players", a.getTeamPlayers).Methods("GET")
-
-	a.Router.HandleFunc("/scores", a.getScores).Methods("GET")
-	a.Router.HandleFunc("/scores", a.createScore).Methods("POST")
-	a.Router.HandleFunc("/scores/{matchID}", a.getScoreMatch).Methods("GET")
 
 	a.Router.HandleFunc("/previousMatches", a.getPreviousMatches).Methods("GET")
 	a.Router.HandleFunc("/previousMatches", a.createPreviousMatch).Methods("POST")
 	a.Router.HandleFunc("/previousMatches/{id}", a.updatePreviousMatch).Methods("PUT")
 	a.Router.HandleFunc("/previousMatches/{id}", a.deletePreviousMatch).Methods("DELETE")
 	a.Router.HandleFunc("/previousMatches/{id}", a.getPreviousMatch).Methods("GET")
+
+	a.Router.HandleFunc("/groups", a.getGroups).Methods("GET")
+	a.Router.HandleFunc("/groups", a.createGroup).Methods("POST")
+	a.Router.HandleFunc("/groups/{id}", a.updateGroup).Methods("PUT")
+	a.Router.HandleFunc("/groups/{id}", a.deleteGroup).Methods("DELETE")
+	a.Router.HandleFunc("/groups/{id}", a.getGroup).Methods("GET")
+
+	a.Router.HandleFunc("/scores", a.getScores).Methods("GET")
 
 	a.Router.HandleFunc("/nextMatches", a.updateNextMatches).Methods("PUT")
 	a.Router.HandleFunc("/nextMatches", a.getNextMatches).Methods("GET")
@@ -66,3 +70,34 @@ func main() {
 	defer a.DB.Close()
 	a.Run(":8080")
 }
+
+// [grupo][1<<horarios]
+
+// f(IDupla, horario) {
+
+// 	for horario {
+// 		if i ta livre {
+// 			for horario {
+// 				if j ta livre{
+// 					i é o horario da dupla1
+// 					j é o horario da dupla2
+// 				}
+// 			}
+// 			// tento pega com dupla1(time1, time2) + ...
+// 			// tento pega com dupla2(time3, time4) + ...
+// 		}
+// 	}
+// 	for horario {
+// 		if i ta livre {
+// 			// tento pega com dupla1(time1, time3) + ...
+// 			// tento pega com dupla2(time2, time4) + ...
+// 		}
+// 	}
+// 	for horario {
+// 		if i ta livre {
+// 			// tento pega com dupla1(time1, time4) + ...
+// 			// tento pega com dupla2(time2, time3) + ...
+// 		}
+// 	}
+
+// }

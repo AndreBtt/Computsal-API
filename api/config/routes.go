@@ -180,60 +180,9 @@ func (a *App) getTeams(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getTeam(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	t := team.TeamTable{Name: vars["name"]}
-
-	if err := t.GetTeam(a.DB); err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			respondWithError(w, http.StatusNotFound, "Team not found")
-		default:
-			respondWithError(w, http.StatusInternalServerError, err.Error())
-		}
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, t)
-}
-
-func (a *App) getTeamPlayers(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	teams, err := team.GetPlayers(a.DB, vars["name"])
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			respondWithError(w, http.StatusNotFound, "Team not found")
-		default:
-			respondWithError(w, http.StatusInternalServerError, err.Error())
-		}
-		return
-	}
-	respondWithJSON(w, http.StatusOK, teams)
 }
 
 /* ---------------- SCORE ROUTES ----------------- */
-
-func (a *App) getScoreMatch(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	matchID, err := strconv.Atoi(vars["matchID"])
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid match ID")
-		return
-	}
-
-	playerScore, err := score.GetPlayerScore(a.DB, matchID)
-	if err != nil {
-		switch err {
-		case sql.ErrNoRows:
-			respondWithError(w, http.StatusNotFound, "Match not found")
-		default:
-			respondWithError(w, http.StatusInternalServerError, err.Error())
-		}
-		return
-	}
-
-	respondWithJSON(w, http.StatusOK, playerScore)
-}
 
 func (a *App) getScores(w http.ResponseWriter, r *http.Request) {
 	playerScore, err := score.GetScores(a.DB)
@@ -248,23 +197,6 @@ func (a *App) getScores(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, playerScore)
-}
-
-func (a *App) createScore(w http.ResponseWriter, r *http.Request) {
-	var ps score.PlayerScoreTable
-	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&ps); err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
-		return
-	}
-	defer r.Body.Close()
-
-	if err := ps.CreateScore(a.DB); err != nil {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
-		return
-	}
-
-	respondWithJSON(w, http.StatusCreated, ps)
 }
 
 /* ---------------- PREVIOUS MATCHES ROUTES ----------------- */

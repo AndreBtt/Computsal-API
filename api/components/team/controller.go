@@ -3,8 +3,6 @@ package team
 import (
 	"database/sql"
 	"fmt"
-
-	player "github.com/AndreBtt/Computsal/api/components/player"
 )
 
 func (t *TeamTable) CreateTeam(db *sql.DB) error {
@@ -42,11 +40,6 @@ func (t *TeamTable) DeleteTeam(db *sql.DB) error {
 	return err
 }
 
-func (t *TeamTable) GetTeam(db *sql.DB) error {
-	statement := fmt.Sprintf("SELECT id, photo, group_number FROM team WHERE name = '%s'", t.Name)
-	return db.QueryRow(statement).Scan(&t.ID, &t.PhotoURL, &t.Group)
-}
-
 func GetTeams(db *sql.DB) ([]TeamTable, error) {
 	statement := fmt.Sprintf("SELECT id, name, photo, group_number FROM team")
 	rows, err := db.Query(statement)
@@ -66,27 +59,4 @@ func GetTeams(db *sql.DB) ([]TeamTable, error) {
 	}
 
 	return teams, nil
-}
-
-func GetPlayers(db *sql.DB, teamName string) ([]player.PlayerTable, error) {
-	statement := fmt.Sprintf("SELECT * FROM player where fk_player_team = '%s'", teamName)
-	rows, err := db.Query(statement)
-
-	if err != nil {
-		return nil, err
-	}
-
-	defer rows.Close()
-
-	players := []player.PlayerTable{}
-
-	for rows.Next() {
-		var p player.PlayerTable
-		if err := rows.Scan(&p.ID, &p.Name, &p.Team); err != nil {
-			return nil, err
-		}
-		players = append(players, p)
-	}
-
-	return players, nil
 }

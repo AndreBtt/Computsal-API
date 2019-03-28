@@ -49,17 +49,3 @@
 
 ## Get a team
 * todo
-
-## Get team's players
-* HTTP Request : ```GET http://api.com/teams/{name}/players```
-* Name is the team's name you want to get players
-* Return a list of player object in json format as follow
-    ```
-        [ 
-            {
-                "id":    int,    
-                "name":  string, 
-                "team":  string
-            },...
-        ]
-    ```
