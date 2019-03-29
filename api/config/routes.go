@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/AndreBtt/Computsal/api/components/captain"
 	group "github.com/AndreBtt/Computsal/api/components/group"
 	match "github.com/AndreBtt/Computsal/api/components/match"
 	player "github.com/AndreBtt/Computsal/api/components/player"
@@ -409,4 +410,20 @@ func (a *App) createGroup(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusCreated, map[string]string{"result": "success"})
+}
+
+/* ---------------- CAPTAIN ROUTES ----------------- */
+
+func (a *App) getCaptain(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	teamName := vars["team"]
+
+	var cap captain.CaptainQuery
+
+	if err := cap.CaptainQuery(a.DB, teamName); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, cap)
 }

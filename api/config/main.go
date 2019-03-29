@@ -37,6 +37,7 @@ func (a *App) initializeRoutes() {
 
 	a.Router.HandleFunc("/teams", a.getTeams).Methods("GET")
 	a.Router.HandleFunc("/teams", a.createTeam).Methods("POST")
+	// repensar no update do time
 	a.Router.HandleFunc("/teams", a.updateTeam).Methods("PUT")
 	a.Router.HandleFunc("/teams/{id}", a.deleteTeam).Methods("DELETE")
 	// falta codar de forma correta o getTeam com name sendo o ID
@@ -54,10 +55,13 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/groups/{id}", a.deleteGroup).Methods("DELETE")
 	// a.Router.HandleFunc("/groups/{id}", a.getGroup).Methods("GET")
 
-	a.Router.HandleFunc("/scores", a.getScores).Methods("GET")
-
 	a.Router.HandleFunc("/nextMatches", a.updateNextMatches).Methods("PUT")
 	a.Router.HandleFunc("/nextMatches", a.getNextMatches).Methods("GET")
+
+	a.Router.HandleFunc("/scores", a.getScores).Methods("GET")
+
+	a.Router.HandleFunc("/captain/{team}", a.getCaptain).Methods("GET")
+
 }
 
 func (a *App) Run(addr string) {

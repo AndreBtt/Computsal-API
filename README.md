@@ -13,3 +13,5 @@ some text....
 ### [Matches](api/components/match/README.md)
 
 ### [Score](api/components/score/README.md)
+
+### [Captain](api/components/captain/README.md)
