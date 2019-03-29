@@ -1,6 +1,7 @@
 package team
 
 import (
+	"github.com/AndreBtt/Computsal/api/components/match"
 	"github.com/AndreBtt/Computsal/api/components/player"
 )
 
@@ -24,18 +25,23 @@ type TeamCreate struct {
 	CaptainEmail string              `json:"captain_email"`
 }
 
+type TeamNextMatch struct {
+	Name string `json:"name"`
+	Time int    `json:"time"`
+}
+
 type Team struct {
-	Name         string
-	PhotoURL     string
-	Group        int
-	Position     int
-	Win          int
-	Lose         int
-	Draw         int
-	YellowCard   int
-	RedCard      int
-	GoalsPro     int
-	GoalsAgainst int
-	NextMatch    string
-	Players      []player.PlayerTable
+	ID              int
+	Name            string
+	PhotoURL        string
+	Group           int
+	Win             int
+	Lose            int
+	Draw            int
+	GoalsPro        int
+	GoalsAgainst    int
+	NextMatch       TeamNextMatch
+	CaptainName     string
+	Players         []player.PlayerTable
+	PreviousMatches []match.PreviousMatchList
 }

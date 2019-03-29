@@ -65,6 +65,63 @@ func GetPreviousMatches(db *sql.DB) ([]PreviousMatchList, error) {
 	return matchList, nil
 }
 
+func GetTeamPreviousMatches(db *sql.DB, teamName string) ([]PreviousMatchList, error) {
+	statement := fmt.Sprintf(`
+		SELECT
+			previous_match.match_type,
+			previous_match.phase,
+			previous_match.fk_match_team1 AS team1,
+			previous_match.fk_match_team2 AS team2,
+			COALESCE(player.fk_player_team, "flag_no_score") AS team,
+			previous_match.id AS match_id,
+			COALESCE(sum(player_match.quantity), 0) AS team_score
+		FROM previous_match
+			LEFT JOIN player_match
+				ON previous_match.id = player_match.fk_score_match
+			LEFT JOIN player
+				ON player.id = player_match.fk_score_player
+		WHERE fk_match_team1 = '%s' OR fk_match_team2 = '%s'
+		GROUP BY match_type, phase, team1, team2, team, match_id
+		ORDER BY match_id`, teamName, teamName)
+
+	rows, err := db.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	matchQuery := []PreviousMatchesQuery{}
+
+	for rows.Next() {
+		var p PreviousMatchesQuery
+		if err := rows.Scan(&p.Type, &p.Phase, &p.Team1, &p.Team2, &p.Team, &p.ID, &p.Score); err != nil {
+			return nil, err
+		}
+		matchQuery = append(matchQuery, p)
+	}
+
+	matchList := []PreviousMatchList{}
+
+	for i := 0; i < len(matchQuery); i++ {
+		var currentMatch PreviousMatchList
+		if matchQuery[i].Team == "flag_no_score" {
+			// draw
+			currentMatch = drawMatch(matchQuery[i])
+		} else if (i == len(matchQuery)-1) || (matchQuery[i+1].ID != matchQuery[i].ID) {
+			// one of the teams has score 0
+			currentMatch = oneScoreMatch(matchQuery[i])
+		} else {
+			// both teams scored
+			currentMatch = bothScoreMatch(matchQuery[i], matchQuery[i+1])
+			i++
+		}
+		matchList = append(matchList, currentMatch)
+	}
+
+	return matchList, nil
+}
+
 func bothScoreMatch(match1, match2 PreviousMatchesQuery) PreviousMatchList {
 	var currentMatch PreviousMatchList
 
@@ -323,7 +380,28 @@ func UpdateNextMatches(db *sql.DB, matches []NextMatchUpdate) error {
 }
 
 func updateEliminationPhase(db *sql.DB, matches []NextMatchUpdate) error {
-	return fmt.Errorf("TODO")
+	// Elimination phase can only update time
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	for _, elem := range matches {
+		statement := fmt.Sprintf(`
+			UPDATE 
+				next_match 
+			SET 
+				time = %d	
+			WHERE id = %d`, elem.Time, elem.ID)
+		if _, err := tx.Exec(statement); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return rollbackErr
+			}
+			return err
+		}
+	}
+
+	return tx.Commit()
 }
 
 func updateGroupPhase(db *sql.DB, matches []NextMatchUpdate) error {

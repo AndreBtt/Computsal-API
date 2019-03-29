@@ -184,6 +184,21 @@ func (a *App) getTeams(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getTeam(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	teamName := vars["teamName"]
+
+	teamDetails, err := team.GetTeam(a.DB, teamName)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Team not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, teamDetails)
 }
 
 /* ---------------- SCORE ROUTES ----------------- */

@@ -17,6 +17,7 @@
         },...
     ]
     ```
+* Type is 1 if it is an elimination match or 0 if it is a group match   
 
 ## Create previous match
 
@@ -123,3 +124,5 @@
         },...
     ]
 ```
+* When update a elimination phase (type = 1) only the match time will be updated
+* When update a group phase (type = 0) team1, team2 and time will be updated

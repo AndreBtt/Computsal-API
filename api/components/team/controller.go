@@ -1,6 +1,7 @@
 package team
 
 import (
+	"github.com/AndreBtt/Computsal/api/components/match"
 	"database/sql"
 	"fmt"
 
@@ -96,3 +97,79 @@ func GetTeams(db *sql.DB) ([]TeamTable, error) {
 
 	return teams, nil
 }
+
+func GetTeam(db *sql.DB, teamName string) (Team, error) {
+	var teamDetails Team
+
+	statement := fmt.Sprintf(`
+		SELECT
+			team.name,
+			team.photo,
+			team.group_number,
+			team.id,
+			COALESCE(next_match.fk_next_team1, "flag_no_team") AS team1,
+			COALESCE(next_match.fk_next_team2, "flag_no_team") AS team2,
+			COALESCE(time.time, "00:00:00") AS time,
+			player.name AS captain
+		FROM team
+			LEFT JOIN
+				next_match
+					ON 	next_match.fk_next_team1 = team.name OR
+						next_match.fk_next_team2 = team.name
+			LEFT JOIN
+				time
+					ON time.id = next_match.time
+			INNER JOIN
+				captain
+					ON captain.fk_captain_team = team.name
+			INNER JOIN
+				player
+					ON player.id = captain.fk_captain_player
+		WHERE 
+			team.name = '%s'`, teamName)
+
+	var team1,team2 string
+	if err := db.QueryRow(statement).Scan(&teamDetails.Name, &teamDetails.PhotoURL, 
+		&teamDetails.Group, &teamDetails.ID, &team1, &team2, 
+		&teamDetails.NextMatch.Time, &teamDetails.CaptainName); err != nil {
+		return err
+	}
+	
+	if team1 == teamName {
+		teamDetails.NextMatch.Time = team2
+	}
+	if team2 == teamName {
+		teamDetails.NextMatch.Time = team1
+	}
+
+	// get team previou match to get win lose draw and goals
+	teamDetails.PreviousMatches = match.GetTeamPreviousMatches(db, teamName)
+	for _, elem := range teamDetails.PreviousMatches {
+		if elem.Team1 == teamName {
+			if elem.Score1 > elem.Score2 {
+				teamDetails.Win++
+			} else if elem.Score1 < elem.Score2 {
+				teamDetails.Lose++
+			} else {
+				teamDetails.Draw++
+			}
+			teamDetails.GoalsPro += elem.Score1
+			teamDetails.GoalsAgainst += elem.Score2
+		} else {
+			if elem.Score2 > elem.Score1 {
+				teamDetails.Win++
+			} else if elem.Score2 < elem.Score1 {
+				teamDetails.Lose++
+			} else {
+				teamDetails.Draw++
+			}
+			teamDetails.GoalsPro += elem.Score2
+			teamDetails.GoalsAgainst += elem.Score1
+		}
+	}
+
+	Players         []player.PlayerTable
+	
+	Position        int	
+}
+
