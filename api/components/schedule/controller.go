@@ -8,17 +8,17 @@ import (
 func GetAvailableTimes(db *sql.DB, teamName string) ([]TimeAvailable, error) {
 	statement := fmt.Sprintf(`
 		SELECT
-			adm_schedule.id AS id,
-			adm_schedule.time AS time,
+			time.id AS id,
+			time.time AS time,
 			CASE WHEN schedule.fk_schedule_team IS NOT NULL 
 			THEN 0
 			ELSE 1
 		END AS availability
 		FROM
-			adm_schedule
+			time
 		LEFT JOIN
 			schedule
-				ON schedule.fk_schedule_time = adm_schedule.id AND
+				ON schedule.fk_schedule_time = time.id AND
 				schedule.fk_schedule_team = "%s"`, teamName)
 
 	rows, err := db.Query(statement)

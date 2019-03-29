@@ -20,7 +20,7 @@ func CreateTimes(db *sql.DB, times []TimeCreate) error {
 	}
 
 	// create new times
-	statement := fmt.Sprintf("INSERT INTO adm_schedule(time) values ")
+	statement := fmt.Sprintf("INSERT INTO time(time) values ")
 	for _, elem := range times {
 		value := fmt.Sprintf("('%s'),", elem.Time)
 		statement += value
@@ -38,7 +38,7 @@ func CreateTimes(db *sql.DB, times []TimeCreate) error {
 }
 
 func GetTimes(db *sql.DB) ([]TimeTable, error) {
-	statement := fmt.Sprintf("SELECT id, time FROM adm_schedule ORDER BY time ASC")
+	statement := fmt.Sprintf("SELECT id, time FROM time ORDER BY time ASC")
 	rows, err := db.Query(statement)
 
 	if err != nil {
@@ -96,7 +96,7 @@ func update(db *sql.DB, times []TimeTable) error {
 	}
 
 	for _, elem := range times {
-		statement := fmt.Sprintf("UPDATE adm_schedule SET time='%s' WHERE id=%d", elem.Time, elem.ID)
+		statement := fmt.Sprintf("UPDATE time SET time='%s' WHERE id=%d", elem.Time, elem.ID)
 		if _, err := tx.Exec(statement); err != nil {
 			if rollbackErr := tx.Rollback(); rollbackErr != nil {
 				return rollbackErr
@@ -113,7 +113,7 @@ func delete(db *sql.DB, times []TimeDelete) error {
 		return nil
 	}
 
-	statement := fmt.Sprintf("DELETE FROM adm_schedule WHERE")
+	statement := fmt.Sprintf("DELETE FROM time WHERE")
 
 	for _, elem := range times {
 		value := fmt.Sprintf(" id = %d OR", elem.ID)

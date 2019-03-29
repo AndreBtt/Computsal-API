@@ -418,7 +418,7 @@ func (a *App) createGroup(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) getCaptain(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	teamName := vars["team"]
+	teamName := vars["teamName"]
 
 	var cap captain.CaptainQuery
 
@@ -484,7 +484,7 @@ func (a *App) updateDeleteTimes(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) getTeamSchedule(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	teamName := vars["team"]
+	teamName := vars["teamName"]
 
 	times, err := schedule.GetAvailableTimes(a.DB, teamName)
 	if err != nil {
@@ -501,7 +501,7 @@ func (a *App) getTeamSchedule(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) updateTeamSchedule(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	teamName := vars["team"]
+	teamName := vars["teamName"]
 
 	schedules := []schedule.TimeUpdate{}
 	decoder := json.NewDecoder(r.Body)

@@ -15,3 +15,7 @@ some text....
 ### [Score](api/components/score/README.md)
 
 ### [Captain](api/components/captain/README.md)
+
+### [Time](api/components/time/README.md)
+
+### [Schedule](api/components/schedule/README.md)

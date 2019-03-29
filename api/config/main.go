@@ -60,14 +60,14 @@ func (a *App) initializeRoutes() {
 
 	a.Router.HandleFunc("/scores", a.getScores).Methods("GET")
 
-	a.Router.HandleFunc("/captain/{team}", a.getCaptain).Methods("GET")
+	a.Router.HandleFunc("/captain/{teamName}", a.getCaptain).Methods("GET")
 
 	a.Router.HandleFunc("/times", a.getTimes).Methods("GET")
 	a.Router.HandleFunc("/times", a.createTimes).Methods("POST")
 	a.Router.HandleFunc("/times", a.updateDeleteTimes).Methods("PUT")
 
-	a.Router.HandleFunc("/schedule/{team}", a.getTeamSchedule).Methods("GET")
-	a.Router.HandleFunc("/schedule/{team}", a.updateTeamSchedule).Methods("PUT")
+	a.Router.HandleFunc("/schedule/{teamName}", a.getTeamSchedule).Methods("GET")
+	a.Router.HandleFunc("/schedule/{teamName}", a.updateTeamSchedule).Methods("PUT")
 
 }
 
