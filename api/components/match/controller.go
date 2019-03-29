@@ -263,7 +263,7 @@ func getMatchPhase(match NextMatch, db *sql.DB) (int, error) {
 	var phase int
 	statement := fmt.Sprintf(`
 		SELECT
-			coalesce(min(phase),0) AS phase
+			coalesce(max(phase),0) AS phase
 		FROM
 			previous_match
 		WHERE 
@@ -332,32 +332,21 @@ func updateGroupPhase(db *sql.DB, matches []NextMatchUpdate) error {
 		return err
 	}
 
-	// delete all matches
-	if _, err := tx.Exec(`TRUNCATE TABLE next_match`); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
-		}
-		return err
-	}
-
-	// generate the statement that will create all new next matches
-	statement := fmt.Sprintf(`
-		INSERT INTO
-			next_match
-				(fk_next_team1, fk_next_team2, time, type)
-		VALUES`)
 	for _, elem := range matches {
-		values := "( \"" + elem.Team1 + "\", \"" + elem.Team2 +
-			"\", " + strconv.Itoa(elem.Time) + ", " + strconv.Itoa(elem.Type) + "),"
-		statement += values
-	}
-
-	statement = statement[:len(statement)-1]
-	if _, err := tx.Exec(statement); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
+		statement := fmt.Sprintf(`
+			UPDATE 
+				next_match 
+			SET 
+				fk_next_team1 = '%s',
+				fk_next_team2 = '%s',
+				time = %d	
+			WHERE id = %d`, elem.Team1, elem.Team2, elem.Time, elem.ID)
+		if _, err := tx.Exec(statement); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return rollbackErr
+			}
+			return err
 		}
-		return err
 	}
 
 	return tx.Commit()

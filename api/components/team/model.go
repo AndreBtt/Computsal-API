@@ -11,6 +11,12 @@ type TeamTable struct {
 	Group    int    `json:"group"`
 }
 
+type TeamUpdate struct {
+	ID       int    `json:"id"`
+	Name     string `json:"name"`
+	PhotoURL string `json:"photo"`
+}
+
 type TeamCreate struct {
 	Name         string              `json:"name"`
 	PhotoURL     string              `json:"photo"`

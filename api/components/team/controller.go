@@ -53,16 +53,15 @@ func createTeamCaptain(db *sql.DB, t TeamCreate) error {
 	return cap.CreateCaptain(db)
 }
 
-func (t *TeamTable) UpdateTeam(db *sql.DB) error {
+func (t *TeamUpdate) UpdateTeam(db *sql.DB) error {
 	statement := fmt.Sprintf(`
 		UPDATE 
 			team
 		SET
 			name = '%s',
-			photo = '%s',
-			group_number = %d
+			photo = '%s'
 		WHERE
-			id = %d`, t.Name, t.PhotoURL, t.Group, t.ID)
+			id = %d`, t.Name, t.PhotoURL, t.ID)
 	_, err := db.Exec(statement)
 	return err
 }

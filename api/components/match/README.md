@@ -18,7 +18,7 @@
     ]
     ```
 
-## Create a previous match
+## Create previous match
 
 * HTTP Request : ```POST http://api.com/previousMatches```
 * Send data in the request body in the follow format 
@@ -38,7 +38,7 @@
 * The match which has the "next_match_id" value will be deleted
 * http StatusCreated (201) will be sent if the player's score has been created correctly
 
-## Update a previous match
+## Update previous match
 
 * HTTP Request : ```PUT http://api.com/previousMatches/{id}```
 * ID is the match ID you want to update
@@ -57,7 +57,7 @@
 * Players that don't have neither score or cards will be deleted from previous match data
 * http StatusCreated (201) will be sent if the match has been updated correctly
 
-## Get a previous match
+## Get previous match
 
 * HTTP Request : ```GET http://api.com/previousMatches/{id}```
 * ID is the match ID you want to get information
@@ -111,10 +111,11 @@
 ## Update next matches
 
 * HTTP Request : ```PUT http://api.com/nextMatches```
-* Send **all** next matches in the request body in the follow format
+* Send an array of next matches data in the request body in the follow format
 ``` 
     [
         {  
+            "id":       int,
             "team1":    string,
             "team2":    string,
             "type":     int,
@@ -122,5 +123,3 @@
         },...
     ]
 ```
-* It's important to send all matches because in this update specifically 
-we delete all the previous data and than insert the new matches

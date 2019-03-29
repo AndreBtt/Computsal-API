@@ -51,7 +51,7 @@
 ```
 * http StatusCreated (201) will be sent if the player has been updated correctly
 
-## Get a player
+## Get player
 * HTTP Request : ```GET http://api.com/players/{ID}```
 * ID is the player ID you want to get information
 * Return a player object in json format as follow

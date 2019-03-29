@@ -153,7 +153,7 @@ func (a *App) deleteTeam(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) updateTeam(w http.ResponseWriter, r *http.Request) {
-	var t team.TeamTable
+	var t team.TeamUpdate
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&t); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -319,7 +319,7 @@ func (a *App) updateNextMatches(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusCreated, nextMatches)
+	respondWithJSON(w, http.StatusCreated, map[string]string{"result": "success"})
 }
 
 func (a *App) getNextMatches(w http.ResponseWriter, r *http.Request) {

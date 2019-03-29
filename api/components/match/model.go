@@ -73,6 +73,7 @@ type NextMatch struct {
 }
 
 type NextMatchUpdate struct {
+	ID    int    `json:"id"`
 	Team1 string `json:"team1"`
 	Team2 string `json:"team2"`
 	Type  int    `json:"type"`
