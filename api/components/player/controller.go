@@ -113,3 +113,40 @@ func (p *PlayerTable) CreatePlayer(db *sql.DB) error {
 	err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&p.ID)
 	return err
 }
+
+func GetPlayersScore(db *sql.DB, teamName string) ([]PlayerTeamScore, error) {
+	statement := fmt.Sprintf(`
+		SELECT
+			player.id,
+			player.name,
+			coalesce(sum(player_match.quantity),0) AS score,
+			coalesce(sum(player_match.yellow), 0) AS yellow,
+			coalesce(sum(player_match.red),0) AS red
+		FROM 
+			player
+		LEFT JOIN
+			player_match
+				ON player_match.fk_score_player = player.id
+		WHERE player.fk_player_team = '%s'
+		GROUP BY player.id, player.name
+		ORDER BY score DESC, yellow DESC, red DESC`, teamName)
+
+	rows, err := db.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	players := []PlayerTeamScore{}
+
+	for rows.Next() {
+		var p PlayerTeamScore
+		if err := rows.Scan(&p.ID, &p.Name, &p.Score, &p.YellowCard, &p.RedCard); err != nil {
+			return nil, err
+		}
+		players = append(players, p)
+	}
+
+	return players, nil
+}

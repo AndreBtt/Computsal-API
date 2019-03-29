@@ -52,4 +52,45 @@
 * http StatusCreated (201) will be sent if the team has been updated correctly
 
 ## Get a team
-* todo
+* HTTP Request : ```GET http://api.com/teams/{teamName}```
+* teamName is the team's name you want to get information
+* Return a object in json format as follow
+    ``` 
+        {
+            "id":               int,
+            "name":             string,
+            "photo":            string,
+            "group":            int,
+            "win":              int,
+            "lose":             int,
+            "draw":             int,
+            "goals_pro":        int,
+            "goals_against":    int,
+            "next_match": {
+                "name": string,
+                "time": time
+            },
+            "captain":  string,
+            "players": [
+                {
+                    "id":           int,
+                    "name":         string,
+                    "score":        int,
+                    "yellowCard":   int,
+                    "redCard":      int
+                },...
+            ],
+            "previous_matches": [
+                {
+                    "id":       int,
+                    "team1":    string,
+                    "team2":    string,
+                    "score1":   int,
+                    "score2":   int,
+                    "type":     int,
+                    "phase":    int
+                },...
+            ]
+        }
+    ```
+* time type is a string in the follow format "HH:MM:SS" where HH is hour, MM is minutes and SS seconds

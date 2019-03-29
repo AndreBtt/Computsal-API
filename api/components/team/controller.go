@@ -170,8 +170,9 @@ func (teamDetails *Team) GetTeam(db *sql.DB) error {
 		}
 	}
 
+	if teamDetails.Players, err = player.GetPlayersScore(db, teamDetails.Name); err != nil {
+		return err
+	}
+
 	return nil
-
-	// Players         []player.PlayerTable
-
 }

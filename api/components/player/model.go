@@ -24,6 +24,14 @@ type PlayerUpdate struct {
 	Name string `json:"name"`
 }
 
+type PlayerTeamScore struct {
+	ID         int    `json:"id"`
+	Name       string `json:"name"`
+	Score      int    `json:"score"`
+	YellowCard int    `json:"yellowCard"`
+	RedCard    int    `json:"redCard"`
+}
+
 type Player struct {
 	ID           int    `json:"id"`
 	Name         string `json:"name"`
