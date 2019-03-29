@@ -1,7 +1,7 @@
 package team
 
 import (
-	player "github.com/AndreBtt/Computsal/api/components/player"
+	"github.com/AndreBtt/Computsal/api/components/player"
 )
 
 type TeamTable struct {
@@ -9,6 +9,13 @@ type TeamTable struct {
 	Name     string `json:"name"`
 	PhotoURL string `json:"photo"`
 	Group    int    `json:"group"`
+}
+
+type TeamCreate struct {
+	Name         string              `json:"name"`
+	PhotoURL     string              `json:"photo"`
+	Players      []player.PlayerName `json:"players"`
+	CaptainEmail string              `json:"captain_email"`
 }
 
 type Team struct {

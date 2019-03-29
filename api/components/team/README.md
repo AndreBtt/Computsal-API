@@ -14,15 +14,21 @@
         ]
     ```
 
-## Create a team
+## Create team
 * HTTP Request : ```POST http://api.com/teams```
 * Send team's data in the request body in the follow format 
 ``` 
-        {  
-            "name":      string,
-            "photo":     string, 
-            "group":     int
-        }
+        {
+            "name":     string,
+            "photo":    string,
+            "players": 
+                [
+                    {
+                        "name" : string		
+                    },...
+                ],
+            "captain_email" : string
+}
 ```
 * http StatusCreated (201) will be sent if the team has been created correctly
 

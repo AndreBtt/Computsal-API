@@ -113,7 +113,7 @@ func (a *App) getPlayer(w http.ResponseWriter, r *http.Request) {
 /* ---------------- TEAM ROUTES ----------------- */
 
 func (a *App) createTeam(w http.ResponseWriter, r *http.Request) {
-	var t team.TeamTable
+	var t team.TeamCreate
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&t); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -121,7 +121,7 @@ func (a *App) createTeam(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := t.CreateTeam(a.DB); err != nil {
+	if err := team.CreateTeam(a.DB, t); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}

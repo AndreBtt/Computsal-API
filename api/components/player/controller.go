@@ -87,3 +87,12 @@ func GetPlayers(db *sql.DB) ([]PlayerTable, error) {
 
 	return players, nil
 }
+
+func (p *PlayerTable) CreatePlayer(db *sql.DB) error {
+	statement := fmt.Sprintf("INSERT INTO player(name, fk_player_team) VALUES ('%s', '%s')", p.Name, p.Team)
+	if _, err := db.Exec(statement); err != nil {
+		return err
+	}
+	err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&p.ID)
+	return err
+}

@@ -3,17 +3,54 @@ package team
 import (
 	"database/sql"
 	"fmt"
+
+	"github.com/AndreBtt/Computsal/api/components/captain"
+	"github.com/AndreBtt/Computsal/api/components/player"
 )
 
-func (t *TeamTable) CreateTeam(db *sql.DB) error {
-	statement := fmt.Sprintf("INSERT INTO team(name, photo, group_number) VALUES('%s', '%s', %d)", t.Name, t.PhotoURL, t.Group)
+func CreateTeam(db *sql.DB, t TeamCreate) error {
+	// create team table
+	statement := fmt.Sprintf(`
+		INSERT INTO 
+			team(name, photo, group_number) 
+		VALUES('%s', '%s', %d)`, t.Name, t.PhotoURL, -1)
 	if _, err := db.Exec(statement); err != nil {
 		return err
 	}
-	if err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&t.ID); err != nil {
+
+	// create team's captain
+	if err := createTeamCaptain(db, t); err != nil {
 		return err
 	}
-	return nil
+
+	// move captain out of players
+	t.Players = t.Players[1:]
+
+	// create players
+	return createTeamPlayers(db, t)
+}
+
+func createTeamPlayers(db *sql.DB, t TeamCreate) error {
+	teamName := t.Name
+	var players []player.PlayerCreate
+	for _, elem := range t.Players {
+		p := player.PlayerCreate{Name: elem.Name, Team: teamName}
+		players = append(players, p)
+	}
+	return player.CreatePlayers(db, players)
+}
+
+func createTeamCaptain(db *sql.DB, t TeamCreate) error {
+	// first need to create captain player and get the ID
+	captainName := t.Players[0].Name
+	captainPlayer := player.PlayerTable{Team: t.Name, Name: captainName}
+	if err := captainPlayer.CreatePlayer(db); err != nil {
+		return err
+	}
+
+	// create captain
+	cap := captain.CaptainCreate{PlayerID: captainPlayer.ID, Team: captainPlayer.Team, Email: t.CaptainEmail}
+	return cap.CreateCaptain(db)
 }
 
 func (t *TeamTable) UpdateTeam(db *sql.DB) error {
