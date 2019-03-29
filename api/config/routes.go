@@ -7,11 +7,13 @@ import (
 	"strconv"
 
 	"github.com/AndreBtt/Computsal/api/components/captain"
-	group "github.com/AndreBtt/Computsal/api/components/group"
-	match "github.com/AndreBtt/Computsal/api/components/match"
-	player "github.com/AndreBtt/Computsal/api/components/player"
-	score "github.com/AndreBtt/Computsal/api/components/score"
-	team "github.com/AndreBtt/Computsal/api/components/team"
+	"github.com/AndreBtt/Computsal/api/components/group"
+	"github.com/AndreBtt/Computsal/api/components/match"
+	"github.com/AndreBtt/Computsal/api/components/player"
+	"github.com/AndreBtt/Computsal/api/components/schedule"
+	"github.com/AndreBtt/Computsal/api/components/score"
+	"github.com/AndreBtt/Computsal/api/components/team"
+	"github.com/AndreBtt/Computsal/api/components/time"
 	"github.com/gorilla/mux"
 )
 
@@ -426,4 +428,93 @@ func (a *App) getCaptain(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, cap)
+}
+
+/* ---------------- TIMES ROUTES ----------------- */
+
+func (a *App) createTimes(w http.ResponseWriter, r *http.Request) {
+	times := []time.TimeCreate{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&times); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := time.CreateTimes(a.DB, times); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, map[string]string{"result": "success"})
+}
+
+func (a *App) getTimes(w http.ResponseWriter, r *http.Request) {
+	times, err := time.GetTimes(a.DB)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Times not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	respondWithJSON(w, http.StatusOK, times)
+}
+
+func (a *App) updateDeleteTimes(w http.ResponseWriter, r *http.Request) {
+	times := []time.TimeUpdate{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&times); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := time.UpdateTimes(a.DB, times); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+}
+
+/* ---------------- SCHEDULE ROUTES ----------------- */
+
+func (a *App) getTeamSchedule(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	teamName := vars["team"]
+
+	times, err := schedule.GetAvailableTimes(a.DB, teamName)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Times not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	respondWithJSON(w, http.StatusOK, times)
+}
+
+func (a *App) updateTeamSchedule(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	teamName := vars["team"]
+
+	schedules := []schedule.TimeUpdate{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&schedules); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := schedule.UpdateSchedule(a.DB, schedules, teamName); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }

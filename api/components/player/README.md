@@ -9,7 +9,7 @@
                 "id":   int,    
                 "name": string, 
                 "team": string
-            }
+            },...
         ]
     ```
 
