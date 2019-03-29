@@ -15,6 +15,10 @@ type PlayerName struct {
 	Name string `json:"name"`
 }
 
+type PlayerID struct {
+	ID int `json:"id"`
+}
+
 type PlayerUpdate struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`

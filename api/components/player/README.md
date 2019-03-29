@@ -26,10 +26,17 @@
 ```
 * http StatusCreated (201) will be sent if the player has been created correctly
     
-## Delete a player
-* HTTP Request : ```DELETE http://api.com/players/{ID}```
-* ID is the player ID you want to delete
-* http StatusOK (200) will be sent if the player has been deleted correctly
+## Delete players
+* HTTP Request : ```DELETE http://api.com/players```
+* Send data in the request body in the follow format
+``` 
+    [
+        {  
+            "id":       int,
+        },...
+    ]
+```
+* http StatusOK (200) will be sent if the players have been deleted correctly
 
 ## Update players
 * HTTP Request : ```PUT http://api.com/players```

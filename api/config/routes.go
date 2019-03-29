@@ -36,15 +36,16 @@ func (a *App) createPlayers(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, map[string]string{"result": "success"})
 }
 
-func (a *App) deletePlayer(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	playerID, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "Invalid player ID")
+func (a *App) deletePlayers(w http.ResponseWriter, r *http.Request) {
+	var players []player.PlayerID
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&players); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
+	defer r.Body.Close()
 
-	if err := player.DeletePlayer(a.DB, playerID); err != nil {
+	if err := player.DeletePlayers(a.DB, players); err != nil {
 		switch err {
 		case sql.ErrNoRows:
 			respondWithError(w, http.StatusNotFound, "Player not found")

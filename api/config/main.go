@@ -32,7 +32,7 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/players", a.getPlayers).Methods("GET")
 	a.Router.HandleFunc("/players", a.createPlayers).Methods("POST")
 	a.Router.HandleFunc("/players", a.updatePlayers).Methods("PUT")
-	a.Router.HandleFunc("/players/{id}", a.deletePlayer).Methods("DELETE")
+	a.Router.HandleFunc("/players", a.deletePlayers).Methods("DELETE")
 	a.Router.HandleFunc("/players/{id}", a.getPlayer).Methods("GET")
 
 	a.Router.HandleFunc("/teams", a.getTeams).Methods("GET")

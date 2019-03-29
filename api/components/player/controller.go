@@ -18,21 +18,38 @@ func CreatePlayers(db *sql.DB, players []PlayerCreate) error {
 	return err
 }
 
-func DeletePlayer(db *sql.DB, playerID int) error {
-	statement := fmt.Sprintf("DELETE FROM player WHERE id=%d", playerID)
+func DeletePlayers(db *sql.DB, players []PlayerID) error {
+	if len(players) == 0 {
+		return nil
+	}
+
+	statement := fmt.Sprintf("DELETE FROM player WHERE")
+	for _, elem := range players {
+		value := fmt.Sprintf(" id = %d OR", elem.ID)
+		statement += value
+	}
+	statement = statement[:len(statement)-2]
 	_, err := db.Exec(statement)
 	return err
 }
 
 func UpdatePlayers(db *sql.DB, players []PlayerUpdate) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
 	for _, elem := range players {
 		statement := fmt.Sprintf("UPDATE player SET name='%s' WHERE id=%d", elem.Name, elem.ID)
-		if _, err := db.Exec(statement); err != nil {
+		if _, err := tx.Exec(statement); err != nil {
+			if rollbackErr := tx.Rollback(); rollbackErr != nil {
+				return rollbackErr
+			}
 			return err
 		}
 	}
 
-	return nil
+	return tx.Commit()
 }
 
 func (p *Player) GetPlayer(db *sql.DB) error {
