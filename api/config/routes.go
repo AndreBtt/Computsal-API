@@ -187,7 +187,9 @@ func (a *App) getTeam(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	teamName := vars["teamName"]
 
-	teamDetails, err := team.GetTeam(a.DB, teamName)
+	teamDetails := team.Team{Name: teamName}
+
+	err := teamDetails.GetTeam(a.DB)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:

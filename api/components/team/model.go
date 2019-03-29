@@ -27,7 +27,7 @@ type TeamCreate struct {
 
 type TeamNextMatch struct {
 	Name string `json:"name"`
-	Time int    `json:"time"`
+	Time string `json:"time"`
 }
 
 type Team struct {

@@ -1,9 +1,10 @@
 package team
 
 import (
-	"github.com/AndreBtt/Computsal/api/components/match"
 	"database/sql"
 	"fmt"
+
+	"github.com/AndreBtt/Computsal/api/components/match"
 
 	"github.com/AndreBtt/Computsal/api/components/captain"
 	"github.com/AndreBtt/Computsal/api/components/player"
@@ -98,9 +99,7 @@ func GetTeams(db *sql.DB) ([]TeamTable, error) {
 	return teams, nil
 }
 
-func GetTeam(db *sql.DB, teamName string) (Team, error) {
-	var teamDetails Team
-
+func (teamDetails *Team) GetTeam(db *sql.DB) error {
 	statement := fmt.Sprintf(`
 		SELECT
 			team.name,
@@ -126,26 +125,29 @@ func GetTeam(db *sql.DB, teamName string) (Team, error) {
 				player
 					ON player.id = captain.fk_captain_player
 		WHERE 
-			team.name = '%s'`, teamName)
+			team.name = '%s'`, teamDetails.Name)
 
-	var team1,team2 string
-	if err := db.QueryRow(statement).Scan(&teamDetails.Name, &teamDetails.PhotoURL, 
-		&teamDetails.Group, &teamDetails.ID, &team1, &team2, 
+	var team1, team2 string
+	if err := db.QueryRow(statement).Scan(&teamDetails.Name, &teamDetails.PhotoURL,
+		&teamDetails.Group, &teamDetails.ID, &team1, &team2,
 		&teamDetails.NextMatch.Time, &teamDetails.CaptainName); err != nil {
 		return err
 	}
-	
-	if team1 == teamName {
-		teamDetails.NextMatch.Time = team2
+
+	if team1 == teamDetails.Name {
+		teamDetails.NextMatch.Name = team2
 	}
-	if team2 == teamName {
-		teamDetails.NextMatch.Time = team1
+	if team2 == teamDetails.Name {
+		teamDetails.NextMatch.Name = team1
 	}
 
-	// get team previou match to get win lose draw and goals
-	teamDetails.PreviousMatches = match.GetTeamPreviousMatches(db, teamName)
+	// get team's previous matches to calculate win lose draw and goals
+	var err error
+	if teamDetails.PreviousMatches, err = match.GetTeamPreviousMatches(db, teamDetails.Name); err != nil {
+		return err
+	}
 	for _, elem := range teamDetails.PreviousMatches {
-		if elem.Team1 == teamName {
+		if elem.Team1 == teamDetails.Name {
 			if elem.Score1 > elem.Score2 {
 				teamDetails.Win++
 			} else if elem.Score1 < elem.Score2 {
@@ -168,8 +170,8 @@ func GetTeam(db *sql.DB, teamName string) (Team, error) {
 		}
 	}
 
-	Players         []player.PlayerTable
-	
-	Position        int	
-}
+	return nil
 
+	// Players         []player.PlayerTable
+
+}
