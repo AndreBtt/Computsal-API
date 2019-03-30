@@ -371,7 +371,7 @@ func (a *App) getGroups(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) updateGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	groupID, err := strconv.Atoi(vars["id"])
+	groupID, err := strconv.Atoi(vars["groupNumber"])
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid group ID")
 		return
@@ -396,7 +396,7 @@ func (a *App) updateGroup(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) deleteGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	groupID, err := strconv.Atoi(vars["id"])
+	groupID, err := strconv.Atoi(vars["groupNumber"])
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid group ID")
 		return
