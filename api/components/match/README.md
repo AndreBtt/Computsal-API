@@ -17,7 +17,7 @@
         },...
     ]
     ```
-* Type is 1 if it is an elimination match or 0 if it is a group match   
+* Type is 0 if it is a group match or different then 0 if it is an elimination match
 
 ## Create previous match
 
@@ -93,10 +93,10 @@
 
 # Next Matches
 
-## Get all next matches
+## Get next matches
 
 * HTTP Request : ```GET http://api.com/nextMatches```
-* Return a list object in json format as follow
+* If next matches are in group phase return a list object in json format as follow ordered by time
     ``` 
     [
         {
@@ -104,10 +104,12 @@
             "team1":     string, 
             "team2":     string,
             "type":      int,    
-            "time":      int    
+            "time":      time    
         },...
     ]
     ```
+* time type is a string in the follow format "HH:MM:SS" where HH is hour, MM is minutes and SS seconds 
+
 
 ## Update next matches
 
@@ -124,5 +126,22 @@
         },...
     ]
 ```
-* When update a elimination phase (type = 1) only the match time will be updated
 * When update a group phase (type = 0) team1, team2 and time will be updated
+* When update a elimination phase (type != 0) only the match time will be updated
+* http StatusCreated (201) will be sent if the match has been updated correctly
+
+## Create next matches
+
+* HTTP Request : ```POST http://api.com/nextMatches```
+* This method is only available once to create the elimination phase
+* Send an array of next matches data in the request body in the follow format
+```
+[
+	{
+		"team1" : string,
+		"team2" : string
+	},...
+]
+```
+* The order of the array matters, it creates the next matches based on this order
+* http StatusCreated (201) will be sent if it has been completed correctly

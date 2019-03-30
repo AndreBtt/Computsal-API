@@ -6,6 +6,10 @@ import (
 )
 
 func CreatePlayers(db *sql.DB, players []PlayerCreate) error {
+	if len(players) == 0 {
+		return nil
+	}
+
 	statement := fmt.Sprintf("INSERT INTO player(name, fk_player_team) VALUES")
 	for _, elem := range players {
 		values := fmt.Sprintf(" ('%s', '%s'),", elem.Name, elem.Team)
@@ -13,6 +17,8 @@ func CreatePlayers(db *sql.DB, players []PlayerCreate) error {
 	}
 
 	statement = statement[:len(statement)-1]
+
+	fmt.Println(statement)
 
 	_, err := db.Exec(statement)
 	return err
@@ -34,6 +40,10 @@ func DeletePlayers(db *sql.DB, players []PlayerID) error {
 }
 
 func UpdatePlayers(db *sql.DB, players []PlayerUpdate) error {
+	if len(players) == 0 {
+		return nil
+	}
+
 	tx, err := db.Begin()
 	if err != nil {
 		return err

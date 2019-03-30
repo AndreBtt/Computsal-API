@@ -11,6 +11,10 @@ import (
 )
 
 func CreateTeam(db *sql.DB, t TeamCreate) error {
+	if len(t.Players) == 0 {
+		return fmt.Errorf("Insert at least captain player")
+	}
+
 	// create team table
 	statement := fmt.Sprintf(`
 		INSERT INTO 

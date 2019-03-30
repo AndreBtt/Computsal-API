@@ -3,6 +3,7 @@ package match
 import (
 	"database/sql"
 	"fmt"
+	"sort"
 	"strconv"
 
 	score "github.com/AndreBtt/Computsal/api/components/score"
@@ -277,14 +278,154 @@ func (match *NewMatch) CreateMatch(db *sql.DB) error {
 		return err
 	}
 
-	// get the phase with the lowest number between the two teams
+	match.createMatchGroup(db, matchDetails)
+
+	if matchDetails.Type != 0 {
+		return match.createMatchElimination(db, matchDetails)
+	}
+
+	return nil
+
+}
+
+func (match *NewMatch) createMatchElimination(db *sql.DB, matchDetails NextMatch) error {
+	// get the winner team
+	score1 := 0
+	score2 := 0
+
+	// get players from each team
+	statement := fmt.Sprintf(`
+		SELECT
+			id,
+			fk_player_team
+		FROM
+			player
+		WHERE 
+			fk_player_team = '%s' OR
+			fk_player_team = '%s'`, matchDetails.Team1, matchDetails.Team2)
+
+	rows, err := db.Query(statement)
+	if err != nil {
+		return err
+	}
+
+	playerIDteam := make(map[int]string)
+
+	for rows.Next() {
+		var id int
+		var team string
+		if err := rows.Scan(&id, &team); err != nil {
+			return err
+		}
+		playerIDteam[id] = team
+	}
+	rows.Close()
+
+	// get score from each team
+	for _, elem := range match.PlayerScore {
+		if playerIDteam[elem.ID] == matchDetails.Team1 {
+			score1 += elem.Score
+		} else {
+			score2 += elem.Score
+		}
+	}
+
+	// check who win
+	var winningTeam string
+	if score1 > score2 {
+		winningTeam = matchDetails.Team1
+	} else {
+		winningTeam = matchDetails.Team2
+	}
+
+	// search in elimination_match table for this match type
+	statement = fmt.Sprintf(`
+		SELECT 
+			id,
+			team1,
+			team2,
+			type
+		FROM
+			elimination_match
+		WHERE
+			team1 = "flag_type_%d" OR
+			team2 = "flag_type_%d"`, matchDetails.Type, matchDetails.Type)
+
+	rows, err = db.Query(statement)
+	if err != nil {
+		return err
+	}
+	var eliminationMatch EliminationMatchTable
+	for rows.Next() {
+		if err := rows.Scan(&eliminationMatch.ID, &eliminationMatch.Team1,
+			&eliminationMatch.Team2, &eliminationMatch.Type); err != nil {
+			return err
+		}
+	}
+	rows.Close()
+
+	// update the winning team in the correct field
+	if eliminationMatch.Team1 == fmt.Sprintf("flag_type_%d", matchDetails.Type) {
+		eliminationMatch.Team1 = winningTeam
+	} else {
+		eliminationMatch.Team2 = winningTeam
+	}
+
+	// check if this match is ok to transfer to next_match table
+	// any of the teams have 'flag_type_' int their names
+	// it means that this match is ok to move forward
+	if ((len(eliminationMatch.Team1) < 10) || (eliminationMatch.Team1[:10] != "flag_type_")) &&
+		((len(eliminationMatch.Team2) < 10) || (eliminationMatch.Team2[:10] != "flag_type_")) {
+
+		// delete from elimination round
+		statement := fmt.Sprintf(`
+			DELETE FROM
+				elimination_match
+			WHERE
+				id = %d`, eliminationMatch.ID)
+		if _, err := db.Exec(statement); err != nil {
+			return err
+		}
+
+		// add to next match
+		statement = fmt.Sprintf(`
+			INSERT INTO
+				next_match (fk_next_team1, fk_next_team2, time, type)
+			VALUES('%s', '%s', %d, %d)`, eliminationMatch.Team1, eliminationMatch.Team2, -1, eliminationMatch.Type)
+		_, err := db.Exec(statement)
+		return err
+	}
+	// not ready to move
+	// update elimination round
+	statement = fmt.Sprintf(`
+			UPDATE
+				elimination_match
+			SET 
+				team1 = '%s',
+				team2 = '%s'
+			WHERE id = %d`, eliminationMatch.Team1, eliminationMatch.Team2, eliminationMatch.ID)
+	_, err = db.Exec(statement)
+	return err
+}
+
+func (match *NewMatch) createMatchGroup(db *sql.DB, matchDetails NextMatch) error {
+	if err := match.createPreviousMatch(db, matchDetails); err != nil {
+		return err
+	}
+
+	// delete the next match related to the previous match
+	return DeleteNextMatch(db, match.NextMatchID)
+}
+
+func (match *NewMatch) createPreviousMatch(db *sql.DB, matchDetails NextMatch) error {
+	// get the phase with the highest number between the two teams
 	phase, err := getMatchPhase(matchDetails, db)
 	if err != nil {
 		return err
 	}
 
 	// create the previous match with the data we got
-	statement = fmt.Sprintf(`
+	statement := fmt.Sprintf(`
 		INSERT INTO 
 			previous_match
 				(fk_match_team1, fk_match_team2, match_type, phase) 
@@ -298,11 +439,6 @@ func (match *NewMatch) CreateMatch(db *sql.DB) error {
 
 	var matchID int
 	if err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&matchID); err != nil {
-		return err
-	}
-
-	// delete the next match related to the previous match
-	if err := DeleteNextMatch(db, match.NextMatchID); err != nil {
 		return err
 	}
 
@@ -368,13 +504,14 @@ func DeleteNextMatch(db *sql.DB, matchID int) error {
 }
 
 func UpdateNextMatches(db *sql.DB, matches []NextMatchUpdate) error {
-	// elimination round
-	if matches[0].Type == 1 {
-		err := updateEliminationPhase(db, matches)
-		return err
-	} else {
+	if matches[0].Type == 0 {
 		// group phase round
 		err := updateGroupPhase(db, matches)
+		return err
+
+	} else {
+		// elimination round
+		err := updateEliminationPhase(db, matches)
 		return err
 	}
 }
@@ -430,23 +567,156 @@ func updateGroupPhase(db *sql.DB, matches []NextMatchUpdate) error {
 	return tx.Commit()
 }
 
-func GetNextMatches(db *sql.DB) ([]NextMatchTable, error) {
-	statement := fmt.Sprintf(`SELECT id, fk_next_team1, fk_next_team2, time, type FROM next_match`)
+func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
+	statement := fmt.Sprintf(`
+		SELECT 
+			next_match.id,
+			next_match.fk_next_team1,
+			next_match.fk_next_team2,
+			coalesce(time.time, "") time,
+			next_match.type
+		FROM 
+			next_match
+			LEFT JOIN
+				time
+					ON time.id = next_match.time`)
 	rows, err := db.Query(statement)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	matches := []NextMatchTable{}
+	matches := []NextMatchList{}
 
 	for rows.Next() {
-		var newMatch NextMatchTable
+		var newMatch NextMatchList
 		if err := rows.Scan(&newMatch.ID, &newMatch.Team1, &newMatch.Team2, &newMatch.Time, &newMatch.Type); err != nil {
 			return nil, err
 		}
 		matches = append(matches, newMatch)
 	}
 
+	// group phase matches
+	if len(matches) == 0 || matches[0].Type == 0 {
+		sort.Slice(matches, func(i, j int) bool {
+			if matches[i].Time == "" {
+				return false
+			}
+			if matches[j].Time == "" {
+				return true
+			}
+			return matches[i].Time < matches[j].Time
+		})
+		return matches, nil
+	}
+
+	// elimination phase matches
+	statement = fmt.Sprintf(`
+		SELECT 
+			elimination_match.id,
+			elimination_match.team1,
+			elimination_match.team2,
+			elimination_match.type
+		FROM 
+			elimination_match`)
+	rows, err = db.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var newMatch NextMatchList
+		newMatch.Time = ""
+		if err := rows.Scan(&newMatch.ID, &newMatch.Team1, &newMatch.Team2, &newMatch.Type); err != nil {
+			return nil, err
+		}
+		matches = append(matches, newMatch)
+	}
+
 	return matches, nil
+}
+
+func CreateNextMatches(db *sql.DB, nextMatches []NextMatchCreate) error {
+	nextMatchesGenerate := make([]NextMatchTable, 0)
+	nextMatchesQueue := make([]NextMatchTable, 0)
+
+	typeNumber := 1
+	for _, elem := range nextMatches {
+		var next NextMatchTable
+		next.Team1 = elem.Team1
+		next.Team2 = elem.Team2
+		next.Time = -1
+		next.Type = typeNumber
+		nextMatchesGenerate = append(nextMatchesGenerate, next)
+		nextMatchesQueue = append(nextMatchesQueue, next)
+		typeNumber++
+	}
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	// delete all next matches
+	if _, err := tx.Exec(`TRUNCATE TABLE next_match`); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	statement := fmt.Sprintf(`
+		INSERT INTO 
+			next_match(fk_next_team1, fk_next_team2, time, type)
+		VALUES `)
+	for _, elem := range nextMatchesGenerate {
+		value := fmt.Sprintf("('%s', '%s', %d, %d),", elem.Team1, elem.Team2, elem.Time, elem.Type)
+		statement += value
+	}
+	statement = statement[:len(statement)-1]
+
+	// insert next matches into next_match table
+	if _, err := tx.Exec(statement); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	nextMatchesGenerate = make([]NextMatchTable, 0)
+
+	for len(nextMatchesQueue) > 1 {
+		match1 := nextMatchesQueue[0]
+		match2 := nextMatchesQueue[1]
+		nextMatchesQueue = nextMatchesQueue[2:]
+
+		var next NextMatchTable
+		next.Team1 = fmt.Sprintf("flag_type_%d", match1.Type)
+		next.Team2 = fmt.Sprintf("flag_type_%d", match2.Type)
+		next.Type = typeNumber
+		nextMatchesGenerate = append(nextMatchesGenerate, next)
+		nextMatchesQueue = append(nextMatchesQueue, next)
+		typeNumber++
+	}
+
+	statement = fmt.Sprintf(`
+		INSERT INTO 
+			elimination_match(team1, team2, type)
+		VALUES `)
+	for _, elem := range nextMatchesGenerate {
+		value := fmt.Sprintf("('%s', '%s', %d),", elem.Team1, elem.Team2, elem.Type)
+		statement += value
+	}
+	statement = statement[:len(statement)-1]
+
+	// insert next matches into elimination_match table
+	if _, err := tx.Exec(statement); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	return tx.Commit()
 }

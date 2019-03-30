@@ -353,6 +353,23 @@ func (a *App) getNextMatches(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, nextMatches)
 }
 
+func (a *App) createNextMatches(w http.ResponseWriter, r *http.Request) {
+	nextMatches := []match.NextMatchCreate{}
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&nextMatches); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := match.CreateNextMatches(a.DB, nextMatches); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, map[string]string{"result": "success"})
+}
+
 /* ---------------- GROUP ROUTES ----------------- */
 
 func (a *App) getGroups(w http.ResponseWriter, r *http.Request) {

@@ -18,18 +18,21 @@
 * HTTP Request : ```POST http://api.com/teams```
 * Send team's data in the request body in the follow format 
 ``` 
-        {
-            "name":     string,
-            "photo":    string,
-            "players": 
-                [
-                    {
-                        "name" : string		
-                    },...
-                ],
-            "captain_email" : string
-}
+    {
+        "name":     string,
+        "photo":    string,
+        "players": 
+            [
+                {
+                    "name" : string		
+                },...
+            ],
+        "captain_email" : string
+    }
 ```
+* Send at least one player which is the captain
+* The first player will be the captain
+* Players need a unique name
 * http StatusCreated (201) will be sent if the team has been created correctly
 
 ## Delete a team
