@@ -44,4 +44,27 @@
     ]
 ```
 * http StatusCreated (201) will be sent if the group has been created correctly
-  
+
+## Get group
+
+* HTTP Request : ```GET http://api.com/groups```
+* Return a list object in json format as follow
+    ``` 
+    {
+        "group_number": int,
+        "Team": [
+            {
+                "id": int,
+                "name": string,
+                "photo": string,
+                "win": int,
+                "lose": int,
+                "draw": int,
+                "goals_pro": int,
+                "goals_against": int,
+                "points": int
+            },...
+        ]
+    }
+    ```
+* Teams are ordered first by points than winnings, draws, goals_pro and finaly goals_against

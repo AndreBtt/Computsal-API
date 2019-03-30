@@ -3,6 +3,10 @@ package group
 import (
 	"database/sql"
 	"fmt"
+	"sort"
+
+	"github.com/AndreBtt/Computsal/api/components/match"
+	"github.com/AndreBtt/Computsal/api/components/team"
 )
 
 func GetGroups(db *sql.DB) ([]GroupList, error) {
@@ -128,4 +132,82 @@ func CreateGroup(db *sql.DB, teams []GroupCreate) error {
 
 	_, err = db.Exec(statement)
 	return err
+}
+
+func (groupDetails *Group) GetGroup(db *sql.DB) error {
+	statement := fmt.Sprintf(`
+		SELECT
+			team.name,
+			team.id,
+			team.photo
+		FROM 
+			team
+		WHERE team.group_number = %d`, groupDetails.Number)
+
+	rows, err := db.Query(statement)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var t team.TeamGroup
+		if err := rows.Scan(&t.Name, &t.ID, &t.PhotoURL); err != nil {
+			return err
+		}
+		groupDetails.Team = append(groupDetails.Team, t)
+	}
+
+	for i := 0; i < len(groupDetails.Team); i++ {
+		var err error
+		var previousMatches []match.PreviousMatchList
+		if previousMatches, err = match.GetTeamPreviousMatches(db, groupDetails.Team[i].Name); err != nil {
+			return err
+		}
+
+		for _, elem := range previousMatches {
+			if elem.Team1 == groupDetails.Team[i].Name {
+				if elem.Score1 > elem.Score2 {
+					groupDetails.Team[i].Win++
+				} else if elem.Score1 < elem.Score2 {
+					groupDetails.Team[i].Lose++
+				} else {
+					groupDetails.Team[i].Draw++
+				}
+				groupDetails.Team[i].GoalsPro += elem.Score1
+				groupDetails.Team[i].GoalsAgainst += elem.Score2
+			} else {
+				if elem.Score2 > elem.Score1 {
+					groupDetails.Team[i].Win++
+				} else if elem.Score2 < elem.Score1 {
+					groupDetails.Team[i].Lose++
+				} else {
+					groupDetails.Team[i].Draw++
+				}
+				groupDetails.Team[i].GoalsPro += elem.Score2
+				groupDetails.Team[i].GoalsAgainst += elem.Score1
+			}
+		}
+
+		groupDetails.Team[i].Points = groupDetails.Team[i].Win*3 + groupDetails.Team[i].Draw
+	}
+
+	sort.Slice(groupDetails.Team, func(i, j int) bool {
+		if groupDetails.Team[i].Points > groupDetails.Team[j].Points {
+			return true
+		} else if groupDetails.Team[i].Points < groupDetails.Team[j].Points {
+			return false
+		} else if groupDetails.Team[i].Win > groupDetails.Team[j].Win {
+			return true
+		} else if groupDetails.Team[i].Win < groupDetails.Team[j].Win {
+			return false
+		} else if groupDetails.Team[i].GoalsPro > groupDetails.Team[j].GoalsPro {
+			return true
+		} else if groupDetails.Team[i].GoalsPro < groupDetails.Team[j].GoalsPro {
+			return false
+		}
+		return groupDetails.Team[i].GoalsAgainst < groupDetails.Team[j].GoalsAgainst
+	})
+
+	return nil
 }

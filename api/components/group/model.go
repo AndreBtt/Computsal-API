@@ -1,5 +1,7 @@
 package group
 
+import "github.com/AndreBtt/Computsal/api/components/team"
+
 type GroupList struct {
 	Number int `json:"group_number"`
 }
@@ -13,4 +15,9 @@ type GroupUpdateTeam struct {
 
 type GroupCreate struct {
 	Name string `json:"team_name"`
+}
+
+type Group struct {
+	Number int              `json:"group_number"`
+	Team   []team.TeamGroup `json: "teams"`
 }

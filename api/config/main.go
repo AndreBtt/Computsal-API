@@ -51,7 +51,7 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/groups", a.createGroup).Methods("POST")
 	a.Router.HandleFunc("/groups/{id}", a.updateGroup).Methods("PUT")
 	a.Router.HandleFunc("/groups/{id}", a.deleteGroup).Methods("DELETE")
-	// a.Router.HandleFunc("/groups/{id}", a.getGroup).Methods("GET")
+	a.Router.HandleFunc("/groups/{groupNumber}", a.getGroup).Methods("GET")
 
 	a.Router.HandleFunc("/nextMatches", a.updateNextMatches).Methods("PUT")
 	a.Router.HandleFunc("/nextMatches", a.getNextMatches).Methods("GET")

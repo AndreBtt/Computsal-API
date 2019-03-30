@@ -432,6 +432,26 @@ func (a *App) createGroup(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusCreated, map[string]string{"result": "success"})
 }
 
+func (a *App) getGroup(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	groupNumber, err := strconv.Atoi(vars["groupNumber"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid group number")
+		return
+	}
+	groupDetails := group.Group{Number: groupNumber}
+	if err := groupDetails.GetGroup(a.DB); err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Group not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	respondWithJSON(w, http.StatusOK, groupDetails)
+}
+
 /* ---------------- CAPTAIN ROUTES ----------------- */
 
 func (a *App) getCaptain(w http.ResponseWriter, r *http.Request) {

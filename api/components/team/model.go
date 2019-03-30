@@ -45,3 +45,15 @@ type Team struct {
 	Players         []player.PlayerTeamScore  `json:"players"`
 	PreviousMatches []match.PreviousMatchList `json:"previous_matches"`
 }
+
+type TeamGroup struct {
+	ID           int    `json:"id"`
+	Name         string `json:"name"`
+	PhotoURL     string `json:"photo"`
+	Win          int    `json:"win"`
+	Lose         int    `json:"lose"`
+	Draw         int    `json:"draw"`
+	GoalsPro     int    `json:"goals_pro"`
+	GoalsAgainst int    `json:"goals_against"`
+	Points       int    `json:"points"`
+}
