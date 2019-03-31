@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	team "github.com/AndreBtt/Computsal/api/components/team"
+	"github.com/AndreBtt/Computsal/api/components/team"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -34,6 +34,8 @@ func TestMain(m *testing.M) {
 }
 
 func TestTeamAPI(t *testing.T) {
+
+	// create a transaction to test
 
 	var teamID int
 

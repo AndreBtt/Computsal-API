@@ -666,6 +666,14 @@ func CreateNextMatches(db *sql.DB, nextMatches []NextMatchCreate) error {
 		return err
 	}
 
+	// delete all elimination matches
+	if _, err := tx.Exec(`TRUNCATE TABLE elimination_match`); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
 	statement := fmt.Sprintf(`
 		INSERT INTO 
 			next_match(fk_next_team1, fk_next_team2, time, type)
@@ -698,6 +706,11 @@ func CreateNextMatches(db *sql.DB, nextMatches []NextMatchCreate) error {
 		nextMatchesGenerate = append(nextMatchesGenerate, next)
 		nextMatchesQueue = append(nextMatchesQueue, next)
 		typeNumber++
+	}
+
+	// don't have next matches, just final game
+	if len(nextMatchesGenerate) == 0 {
+		return tx.Commit()
 	}
 
 	statement = fmt.Sprintf(`
