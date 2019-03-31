@@ -63,6 +63,22 @@ func GetPreviousMatches(db *sql.DB) ([]PreviousMatchList, error) {
 		matchList = append(matchList, currentMatch)
 	}
 
+	// sort first by type
+	// if both have type greater then zero, the one with lower type goes first
+	// if both have type igual to zero, the one with higher phase goes first
+	sort.Slice(matchList, func(i, j int) bool {
+		if matchList[i].Type > 0 && matchList[j].Type == 0 {
+			return true
+		}
+		if matchList[i].Type == 0 && matchList[j].Type > 0 {
+			return false
+		}
+		if matchList[i].Type > 0 && matchList[j].Type > 0 {
+			return matchList[i].Type < matchList[j].Type
+		}
+		return matchList[i].Phase > matchList[j].Phase
+	})
+
 	return matchList, nil
 }
 
@@ -278,17 +294,23 @@ func (match *NewMatch) CreateMatch(db *sql.DB) error {
 		return err
 	}
 
-	match.createMatchGroup(db, matchDetails)
+	if err := match.createPreviousMatch(db, matchDetails); err != nil {
+		return err
+	}
+
+	// delete the next match related to the previous match
+	if err := DeleteNextMatch(db, match.NextMatchID); err != nil {
+		return err
+	}
 
 	if matchDetails.Type != 0 {
-		return match.createMatchElimination(db, matchDetails)
+		return match.updateMatchElimination(db, matchDetails)
 	}
 
 	return nil
-
 }
 
-func (match *NewMatch) createMatchElimination(db *sql.DB, matchDetails NextMatch) error {
+func (match *NewMatch) updateMatchElimination(db *sql.DB, matchDetails NextMatch) error {
 	// get the winner team
 	score1 := 0
 	score2 := 0
@@ -371,7 +393,7 @@ func (match *NewMatch) createMatchElimination(db *sql.DB, matchDetails NextMatch
 		eliminationMatch.Team2 = winningTeam
 	}
 
-	// check if this match is ok to transfer to next_match table
+	// check if this match is ready to be transfered to next_match table
 	// any of the teams have 'flag_type_' int their names
 	// it means that this match is ok to move forward
 	if ((len(eliminationMatch.Team1) < 10) || (eliminationMatch.Team1[:10] != "flag_type_")) &&
@@ -408,16 +430,87 @@ func (match *NewMatch) createMatchElimination(db *sql.DB, matchDetails NextMatch
 	return err
 }
 
-func (match *NewMatch) createMatchGroup(db *sql.DB, matchDetails NextMatch) error {
-	if err := match.createPreviousMatch(db, matchDetails); err != nil {
+func (match *NewMatch) createPreviousMatch(db *sql.DB, matchDetails NextMatch) error {
+	// create group match
+	if matchDetails.Type == 0 {
+		return match.createPreviousMatchGroup(db, matchDetails)
+	}
+	// create elimination match
+	return match.createPreviousMatchElimination(db, matchDetails)
+}
+
+func (match *NewMatch) createPreviousMatchElimination(db *sql.DB, matchDetails NextMatch) error {
+	// search for the highest type
+	// it can only be in the elimination round or can be the current one
+	statement := fmt.Sprintf(`
+		SELECT 
+			coalesce(max(type),0) as type
+		FROM
+			elimination_match`)
+
+	rows, err := db.Query(statement)
+	if err != nil {
+		return err
+	}
+	highestType := matchDetails.Type
+	for rows.Next() {
+		var currType int
+		if err := rows.Scan(&currType); err != nil {
+			return err
+		}
+		if highestType < currType {
+			highestType = currType
+		}
+	}
+	rows.Close()
+
+	// find the correct type
+	correctType := 1
+	numberOfgames := 1
+	for i := highestType; i > 0; {
+		for numberOfgames > 0 {
+			if matchDetails.Type == i {
+				matchDetails.Type = correctType
+				i = 0
+				break
+			}
+			i--
+			numberOfgames--
+		}
+		correctType *= 2
+		numberOfgames = correctType
+	}
+
+	// create the previous match with the data we got
+	statement = fmt.Sprintf(`
+		INSERT INTO 
+			previous_match
+				(fk_match_team1, fk_match_team2, match_type, phase) 
+		VALUES
+			('%s', '%s', %d, %d);
+		`,
+		matchDetails.Team1, matchDetails.Team2, matchDetails.Type, -1)
+	if _, err := db.Exec(statement); err != nil {
 		return err
 	}
 
-	// delete the next match related to the previous match
-	return DeleteNextMatch(db, match.NextMatchID)
+	var matchID int
+	if err := db.QueryRow("SELECT LAST_INSERT_ID()").Scan(&matchID); err != nil {
+		return err
+	}
+
+	if len(match.PlayerScore) == 0 {
+		return nil
+	}
+
+	// add all players score and card to the new previous match
+	statement = generateStatement(match, matchID)
+	_, err = db.Exec(statement)
+	return err
+
 }
 
-func (match *NewMatch) createPreviousMatch(db *sql.DB, matchDetails NextMatch) error {
+func (match *NewMatch) createPreviousMatchGroup(db *sql.DB, matchDetails NextMatch) error {
 	// get the phase with the highest number between the two teams
 	phase, err := getMatchPhase(matchDetails, db)
 	if err != nil {
@@ -584,7 +677,6 @@ func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
 	matches := []NextMatchList{}
 
@@ -595,6 +687,7 @@ func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
 		}
 		matches = append(matches, newMatch)
 	}
+	rows.Close()
 
 	// group phase matches
 	if len(matches) == 0 || matches[0].Type == 0 {
@@ -623,7 +716,6 @@ func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
 	for rows.Next() {
 		var newMatch NextMatchList
@@ -633,6 +725,21 @@ func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
 		}
 		matches = append(matches, newMatch)
 	}
+	rows.Close()
+
+	// sort by time and then by type
+	sort.Slice(matches, func(i, j int) bool {
+		if matches[i].Time == "" && matches[j].Time == "" {
+			return matches[i].Type < matches[j].Type
+		}
+		if matches[i].Time == "" {
+			return false
+		}
+		if matches[j].Time == "" {
+			return true
+		}
+		return matches[i].Time < matches[j].Time
+	})
 
 	return matches, nil
 }

@@ -35,8 +35,6 @@ func TestMain(m *testing.M) {
 
 func TestTeamAPI(t *testing.T) {
 
-	// create a transaction to test
-
 	var teamID int
 
 	/* -------------  CREATE TEAM -------------------- */

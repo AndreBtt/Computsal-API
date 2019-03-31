@@ -35,8 +35,6 @@ func TestMain(m *testing.M) {
 
 func TestScoreAPI(t *testing.T) {
 
-	// create a transaction to test
-
 	/* -------------  CREATE TWO TEAM -------------------- */
 
 	tCreate := team.TeamTable{Name: "Fake Test Team 1", PhotoURL: "www.url.com.br", Group: -1}

@@ -17,7 +17,11 @@
         },...
     ]
     ```
+* The list is sorted from the most recent games to the oldest ones
 * Type is 0 if it is a group match or different then 0 if it is an elimination match
+* Type diffente then zero can be values 1,2,4,8,16,...,2<sup>k</sup> where k >= 0
+* This means that if type is 1 it's the final game, 2 is the semi-final game, and so on
+
 
 ## Create previous match
 
@@ -108,7 +112,8 @@
         },...
     ]
     ```
-* time type is a string in the follow format "HH:MM:SS" where HH is hour, MM is minutes and SS seconds 
+* time type is a string in the follow format "HH:MM:SS" where HH is hour, MM is minutes and SS seconds
+* matches are sorted by time if they don't have time seted yet, it will be sorted by type
 
 
 ## Update next matches
