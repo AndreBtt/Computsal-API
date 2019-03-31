@@ -26,6 +26,9 @@ func GetGroups(db *sql.DB) ([]GroupList, error) {
 		if err := rows.Scan(&g.Number); err != nil {
 			return nil, err
 		}
+		if g.Number == -1 {
+			continue
+		}
 		groups = append(groups, g)
 	}
 
