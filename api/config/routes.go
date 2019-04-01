@@ -323,12 +323,12 @@ func (a *App) updatePreviousMatch(w http.ResponseWriter, r *http.Request) {
 /* ---------------- NEXT MATCHES ROUTES ----------------- */
 
 func (a *App) generateNextMatches(w http.ResponseWriter, r *http.Request) {
-	// err := nextmatch.GenerateNextMatches(a.DB)
-	// if err != nil {
-	// 	respondWithError(w, http.StatusInternalServerError, err.Error())
-	// 	return
-	// }
-	// respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+	err := nextmatch.GenerateNextMatches(a.DB)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
 func (a *App) updateNextMatches(w http.ResponseWriter, r *http.Request) {

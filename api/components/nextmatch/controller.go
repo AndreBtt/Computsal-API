@@ -6,113 +6,11 @@ import (
 	"sort"
 )
 
-// func f(pairID int, pairs []pair, times int, qtTimes int, ans *[][]state, currState []state) {
+func GenerateNextMatches(db *sql.DB) error {
+	// [grupo][1<<horarios]
 
-// 	if pairID == len(pairs) {
-// 		state = append(state, currState)
-// 		return
-// 	}
-
-// 	for t := 0; t < qtTimes; t++ {
-// 		if !(times & (1 << t)) {
-// 			points := 0
-// 			currState = append(currState, state{time: t, point: points})
-// 			f(pairID+1, pairs, teams, (times | (1 << t)), qtTimes, ans, currState )
-// 			currState = currState[:len(currState)-1]
-// 		}
-// 	}
-
-// 	return
-// }
-
-// struct pair type {
-// 	team1
-// 	team2
-// }
-
-// func solve(groupNumber int, times int, qtTimes int, allTeams []team) int {
-
-// 	if groupNumber == -1 {
-// 		return 0
-// 	}
-
-// 	teams := getTeamsByGroup(group, allTeams)
-// 	// [(t1,t2), (t3,t4)], [(t1,t3), (t2,t4)], ....
-// 	pairsCombination := getAllPairs(teams)
-
-// 	bigAns := 0
-
-// 	for _, p := pairsCombination {
-// 		for _, teamPairs := p {
-// 			var possibleTimeMatch [][]State
-// 			var currentState []State
-// 			// gerou todas a combinacoes de (horario, satisfacao) para as duplas
-// 			f(0, teamPairs, qtTimes, possibleTimeMatch, currentState)
-
-// 			ans := -1
-
-// 			for j := range likelyAns {
-// 				newTimes = times
-// 				totalSatisf := 0
-// 				for _, comb := range likelyAns[j] {
-// 					totalSatisf += comb.satisf
-// 					newTimes = newTimes | (1 << comb.time)
-// 				}
-// 				ans = max(ans, solve(groupNumber-1, newTimes, qtTimes, allTeams) + totalSatisf)
-// 			}
-// 		}
-
-// 		bigAns = max(ans, bigAns)
-// 	}
-
-// 	return bigAns
-// }
-
-// func GenerateNextMatches(db *sql.DB) error {
-// 	// [grupo][1<<horarios]
-
-// 	statement := fmt.Sprintf(`
-// 		SELECT DISTINCT
-// 			count(id) as total
-// 		FROM
-// 			time`)
-
-// 	rows, err := db.Query(statement)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	totalTimes := 0
-// 	for rows.Next() {
-// 		if err := rows.Scan(&totalTimes); err != nil {
-// 			return nil, err
-// 		}
-// 	}
-// 	rows.Close()
-
-// 	statement = fmt.Sprintf(`
-// 		SELECT
-// 			max(group_number) as group_number
-// 		FROM
-// 			team`)
-// 	rows, err := db.Query(statement)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-
-// 	highestGroup := 0
-// 	for rows.Next() {
-// 		if err := rows.Scan(&highestGroup); err != nil {
-// 			return nil, err
-// 		}
-// 	}
-// 	rows.Close()
-
-// 	resp := solve(highestGroup, (1 << totalTimes), totalTimes, todosOsTimes)
-
-// 	// recuperar()
-
-// }
+	return fmt.Errorf("Not implemented yet")
+}
 
 func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
 	statement := fmt.Sprintf(`
