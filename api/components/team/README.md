@@ -13,6 +13,7 @@
             },...
         ]
     ```
+* http StatusOK (200) will be sent if the team has been sent correctly
 
 ## Create team
 * HTTP Request : ```POST http://api.com/teams```
@@ -97,3 +98,4 @@
         }
     ```
 * time type is a string in the follow format "HH:MM:SS" where HH is hour, MM is minutes and SS seconds
+* http StatusOK (200) will be sent if the team has been sent correctly

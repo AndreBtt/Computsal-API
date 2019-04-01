@@ -18,8 +18,6 @@ func CreatePlayers(db *sql.DB, players []PlayerCreate) error {
 
 	statement = statement[:len(statement)-1]
 
-	fmt.Println(statement)
-
 	_, err := db.Exec(statement)
 	return err
 }

@@ -11,6 +11,9 @@ import (
 )
 
 func CreateTeam(db *sql.DB, t TeamCreate) error {
+	if len(t.Name) == 0 {
+		return fmt.Errorf("Name can't be empty")
+	}
 	if len(t.Players) == 0 {
 		return fmt.Errorf("Insert at least captain player")
 	}
@@ -72,12 +75,12 @@ func (t *TeamUpdate) UpdateTeam(db *sql.DB) error {
 	return err
 }
 
-func (t *TeamTable) DeleteTeam(db *sql.DB) error {
+func DeleteTeam(db *sql.DB, teamID int) error {
 	statement := fmt.Sprintf(`
 		DELETE FROM
 			team 
 		WHERE 
-			id = %d`, t.ID)
+			id = %d`, teamID)
 	_, err := db.Exec(statement)
 	return err
 }

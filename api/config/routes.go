@@ -137,9 +137,8 @@ func (a *App) deleteTeam(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Invalid team ID")
 		return
 	}
-	t := team.TeamTable{ID: teamID}
 
-	if err := t.DeleteTeam(a.DB); err != nil {
+	if err := team.DeleteTeam(a.DB, teamID); err != nil {
 		switch err {
 		case sql.ErrNoRows:
 			respondWithError(w, http.StatusNotFound, "Team not found")
