@@ -16,6 +16,8 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
+var url = "http://localhost:8080"
+
 func TestMain(m *testing.M) {
 	code := m.Run()
 
@@ -26,8 +28,147 @@ func TestTeamAPI(t *testing.T) {
 
 	/* -------------  CREATE TEAM -------------------- */
 
-	url := "http://localhost:8080"
+	createTeam(t)
 
+	/* -------------  RETRIVE TEAM ------------------- */
+
+	tRetrive := retriveTeam(t, "flag_test_team")
+
+	// create expected team to compare
+	tExpected := team.Team{
+		Name:         "flag_test_team",
+		PhotoURL:     "www.flag_test_url.com.br",
+		CaptainName:  "flag_test_captain",
+		Group:        -1,
+		Win:          0,
+		Lose:         0,
+		Draw:         0,
+		GoalsPro:     0,
+		GoalsAgainst: 0,
+		NextMatch: team.TeamNextMatch{
+			Name: "",
+			Time: "00:00:00",
+		},
+		PreviousMatches: []match.PreviousMatchList{},
+	}
+	tExpected.Players = append(tExpected.Players, player.PlayerTeamScore{
+		Name:       "flag_test_captain",
+		Score:      0,
+		YellowCard: 0,
+		RedCard:    0,
+	})
+	tExpected.Players = append(tExpected.Players, player.PlayerTeamScore{
+		Name:       "flag_test_player2",
+		Score:      0,
+		YellowCard: 0,
+		RedCard:    0,
+	})
+
+	checkTeam(tExpected, tRetrive, t)
+
+	/* -------------  UPDATE TEAM -------------------- */
+
+	updateTeam(t, tRetrive.ID)
+
+	/* -------------  RETRIVE UPDATED TEAM ----------- */
+
+	tRetriveUpdate := retriveTeam(t, "flag_test_team_update")
+
+	tExpected.Name = "flag_test_team_update"
+	tExpected.PhotoURL = "www.flag_test_url_update.com.br"
+	checkTeam(tExpected, tRetriveUpdate, t)
+
+	/* -------------  RETRIVE TEAMS ----------- */
+
+	teams := retriveTeams(t)
+
+	found := false
+	for _, elem := range teams {
+		if elem.Name == tExpected.Name {
+			found = true
+		}
+	}
+
+	if !found {
+		t.Errorf("get teams request did not find created team")
+	}
+
+	/* -------------  DELETE TEAM -------------------- */
+
+	deleteTeam(t, strconv.Itoa(tRetriveUpdate.ID))
+}
+
+func deleteTeam(t *testing.T, teamID string) {
+	req, _ := http.NewRequest("DELETE", url+"/teams/"+teamID, nil)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+	checkResponseCode(t, http.StatusOK, resp)
+	resp.Body.Close()
+}
+
+func retriveTeams(t *testing.T) []team.TeamTable {
+	req, _ := http.NewRequest("GET", url+"/teams", nil)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	var teams []team.TeamTable
+	if err := json.NewDecoder(resp.Body).Decode(&teams); err != nil {
+		t.Fatal(err)
+	}
+
+	checkResponseCode(t, http.StatusOK, resp)
+	resp.Body.Close()
+	return teams
+}
+
+func updateTeam(t *testing.T, teamID int) {
+	payload := []byte(
+		fmt.Sprintf(`
+		{  
+			"id":        %d,
+			"name":      "flag_test_team_update",
+			"photo":     "www.flag_test_url_update.com.br"
+		}`, teamID))
+
+	req, _ := http.NewRequest("PUT", url+"/teams", bytes.NewBuffer(payload))
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	checkResponseCode(t, http.StatusCreated, resp)
+	resp.Body.Close()
+}
+
+func retriveTeam(t *testing.T, teamName string) team.Team {
+	req, _ := http.NewRequest("GET", url+"/teams/"+teamName, nil)
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		panic(err)
+	}
+
+	var tRetrive team.Team
+
+	if err := json.NewDecoder(resp.Body).Decode(&tRetrive); err != nil {
+		t.Fatal(err)
+	}
+	checkResponseCode(t, http.StatusOK, resp)
+	resp.Body.Close()
+
+	return tRetrive
+}
+
+func createTeam(t *testing.T) {
 	payload := []byte(`
 	{
         "name":     "flag_test_team",
@@ -53,140 +194,6 @@ func TestTeamAPI(t *testing.T) {
 	}
 
 	checkResponseCode(t, http.StatusCreated, resp)
-	resp.Body.Close()
-
-	/* -------------  RETRIVE TEAM ------------------- */
-
-	tExpected := team.Team{
-		Name:         "flag_test_team",
-		PhotoURL:     "www.flag_test_url.com.br",
-		CaptainName:  "flag_test_captain",
-		Group:        -1,
-		Win:          0,
-		Lose:         0,
-		Draw:         0,
-		GoalsPro:     0,
-		GoalsAgainst: 0,
-		NextMatch: team.TeamNextMatch{
-			Name: "",
-			Time: "00:00:00",
-		},
-		PreviousMatches: []match.PreviousMatchList{},
-	}
-
-	players := []player.PlayerTeamScore{}
-	players = append(players, player.PlayerTeamScore{
-		Name:       "flag_test_captain",
-		Score:      0,
-		YellowCard: 0,
-		RedCard:    0,
-	})
-	players = append(players, player.PlayerTeamScore{
-		Name:       "flag_test_player2",
-		Score:      0,
-		YellowCard: 0,
-		RedCard:    0,
-	})
-
-	tExpected.Players = players
-
-	req, _ = http.NewRequest("GET", url+"/teams/flag_test_team", bytes.NewBuffer(payload))
-	client = &http.Client{}
-	resp, err = client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
-	var tRetrive team.Team
-
-	if err := json.NewDecoder(resp.Body).Decode(&tRetrive); err != nil {
-		t.Fatal(err)
-	}
-	checkResponseCode(t, http.StatusOK, resp)
-	resp.Body.Close()
-
-	checkTeam(tExpected, tRetrive, t)
-
-	/* -------------  UPDATE TEAM -------------------- */
-
-	payload = []byte(
-		fmt.Sprintf(`
-		{  
-			"id":        %d,
-			"name":      "flag_test_team_update",
-			"photo":     "www.flag_test_url_update.com.br"
-		}`, tRetrive.ID))
-
-	req, _ = http.NewRequest("PUT", url+"/teams", bytes.NewBuffer(payload))
-
-	client = &http.Client{}
-	resp, err = client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
-	checkResponseCode(t, http.StatusCreated, resp)
-	resp.Body.Close()
-
-	/* -------------  RETRIVE UPDATED TEAM ----------- */
-
-	req, _ = http.NewRequest("GET", url+"/teams/flag_test_team_update", bytes.NewBuffer(payload))
-	client = &http.Client{}
-	resp, err = client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
-	var tRetriveUpdate team.Team
-	if err := json.NewDecoder(resp.Body).Decode(&tRetriveUpdate); err != nil {
-		t.Fatal(err)
-	}
-
-	checkResponseCode(t, http.StatusOK, resp)
-	resp.Body.Close()
-
-	tExpected.Name = "flag_test_team_update"
-	tExpected.PhotoURL = "www.flag_test_url_update.com.br"
-	checkTeam(tExpected, tRetriveUpdate, t)
-
-	/* -------------  RETRIVE TEAMS ----------- */
-
-	req, _ = http.NewRequest("GET", url+"/teams", bytes.NewBuffer(payload))
-	client = &http.Client{}
-	resp, err = client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
-	var teams []team.TeamTable
-	if err := json.NewDecoder(resp.Body).Decode(&teams); err != nil {
-		t.Fatal(err)
-	}
-
-	checkResponseCode(t, http.StatusOK, resp)
-	resp.Body.Close()
-
-	found := false
-	for _, elem := range teams {
-		if elem.Name == tExpected.Name {
-			found = true
-		}
-	}
-
-	if !found {
-		t.Errorf("get teams request did not find created team")
-	}
-
-	/* -------------  DELETE TEAM -------------------- */
-
-	req, _ = http.NewRequest("DELETE", url+"/teams/"+strconv.Itoa(tRetriveUpdate.ID), nil)
-
-	client = &http.Client{}
-	resp, err = client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	checkResponseCode(t, http.StatusOK, resp)
 	resp.Body.Close()
 }
 
