@@ -4,10 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/AndreBtt/Computsal/api/components/match"
-
 	"github.com/AndreBtt/Computsal/api/components/captain"
 	"github.com/AndreBtt/Computsal/api/components/player"
+	"github.com/AndreBtt/Computsal/api/components/previousmatch"
 )
 
 func CreateTeam(db *sql.DB, t TeamCreate) error {
@@ -150,7 +149,7 @@ func (teamDetails *Team) GetTeam(db *sql.DB) error {
 
 	// get team's previous matches to calculate win lose draw and goals
 	var err error
-	if teamDetails.PreviousMatches, err = match.GetTeamPreviousMatches(db, teamDetails.Name); err != nil {
+	if teamDetails.PreviousMatches, err = previousmatch.GetTeamPreviousMatches(db, teamDetails.Name); err != nil {
 		return err
 	}
 	for _, elem := range teamDetails.PreviousMatches {

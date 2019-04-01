@@ -9,8 +9,8 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/AndreBtt/Computsal/api/components/match"
 	"github.com/AndreBtt/Computsal/api/components/player"
+	"github.com/AndreBtt/Computsal/api/components/previousmatch"
 	"github.com/AndreBtt/Computsal/api/components/team"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -49,7 +49,7 @@ func TestTeamAPI(t *testing.T) {
 			Name: "",
 			Time: "00:00:00",
 		},
-		PreviousMatches: []match.PreviousMatchList{},
+		PreviousMatches: []previousmatch.PreviousMatchList{},
 	}
 	tExpected.Players = append(tExpected.Players, player.PlayerTeamScore{
 		Name:       "flag_test_captain",

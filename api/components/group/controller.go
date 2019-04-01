@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/AndreBtt/Computsal/api/components/match"
+	"github.com/AndreBtt/Computsal/api/components/previousmatch"
 	"github.com/AndreBtt/Computsal/api/components/team"
 )
 
@@ -163,8 +163,8 @@ func (groupDetails *Group) GetGroup(db *sql.DB) error {
 
 	for i := 0; i < len(groupDetails.Team); i++ {
 		var err error
-		var previousMatches []match.PreviousMatchList
-		if previousMatches, err = match.GetTeamPreviousMatches(db, groupDetails.Team[i].Name); err != nil {
+		var previousMatches []previousmatch.PreviousMatchList
+		if previousMatches, err = previousmatch.GetTeamPreviousMatches(db, groupDetails.Team[i].Name); err != nil {
 			return err
 		}
 

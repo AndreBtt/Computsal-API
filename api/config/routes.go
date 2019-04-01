@@ -8,8 +8,9 @@ import (
 
 	"github.com/AndreBtt/Computsal/api/components/captain"
 	"github.com/AndreBtt/Computsal/api/components/group"
-	"github.com/AndreBtt/Computsal/api/components/match"
+	"github.com/AndreBtt/Computsal/api/components/nextmatch"
 	"github.com/AndreBtt/Computsal/api/components/player"
+	"github.com/AndreBtt/Computsal/api/components/previousmatch"
 	"github.com/AndreBtt/Computsal/api/components/schedule"
 	"github.com/AndreBtt/Computsal/api/components/score"
 	"github.com/AndreBtt/Computsal/api/components/team"
@@ -222,7 +223,7 @@ func (a *App) getScores(w http.ResponseWriter, r *http.Request) {
 /* ---------------- PREVIOUS MATCHES ROUTES ----------------- */
 
 func (a *App) getPreviousMatches(w http.ResponseWriter, r *http.Request) {
-	previousMatches, err := match.GetPreviousMatches(a.DB)
+	previousMatches, err := previousmatch.GetPreviousMatches(a.DB)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -243,7 +244,7 @@ func (a *App) getPreviousMatch(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Invalid match ID")
 		return
 	}
-	matchDetails := match.PreviousMatch{ID: matchID}
+	matchDetails := previousmatch.PreviousMatch{ID: matchID}
 	if err = matchDetails.GetPreviousMatch(a.DB); err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -265,7 +266,7 @@ func (a *App) deletePreviousMatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := match.DeletePreviousMatch(a.DB, matchID); err != nil {
+	if err := previousmatch.DeletePreviousMatch(a.DB, matchID); err != nil {
 		switch err {
 		case sql.ErrNoRows:
 			respondWithError(w, http.StatusNotFound, "Match Not found")
@@ -279,7 +280,7 @@ func (a *App) deletePreviousMatch(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) createPreviousMatch(w http.ResponseWriter, r *http.Request) {
-	match := match.NewMatch{}
+	match := previousmatch.NewMatch{}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&match); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -321,8 +322,17 @@ func (a *App) updatePreviousMatch(w http.ResponseWriter, r *http.Request) {
 
 /* ---------------- NEXT MATCHES ROUTES ----------------- */
 
+func (a *App) generateNextMatches(w http.ResponseWriter, r *http.Request) {
+	// err := nextmatch.GenerateNextMatches(a.DB)
+	// if err != nil {
+	// 	respondWithError(w, http.StatusInternalServerError, err.Error())
+	// 	return
+	// }
+	// respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+}
+
 func (a *App) updateNextMatches(w http.ResponseWriter, r *http.Request) {
-	nextMatches := []match.NextMatchUpdate{}
+	nextMatches := []nextmatch.NextMatchUpdate{}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&nextMatches); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -330,7 +340,7 @@ func (a *App) updateNextMatches(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := match.UpdateNextMatches(a.DB, nextMatches); err != nil {
+	if err := nextmatch.UpdateNextMatches(a.DB, nextMatches); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
@@ -339,7 +349,7 @@ func (a *App) updateNextMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getNextMatches(w http.ResponseWriter, r *http.Request) {
-	nextMatches, err := match.GetNextMatches(a.DB)
+	nextMatches, err := nextmatch.GetNextMatches(a.DB)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -353,7 +363,7 @@ func (a *App) getNextMatches(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) createNextMatches(w http.ResponseWriter, r *http.Request) {
-	nextMatches := []match.NextMatchCreate{}
+	nextMatches := []nextmatch.NextMatchCreate{}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&nextMatches); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
@@ -361,7 +371,7 @@ func (a *App) createNextMatches(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := match.CreateNextMatches(a.DB, nextMatches); err != nil {
+	if err := nextmatch.CreateNextMatches(a.DB, nextMatches); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}

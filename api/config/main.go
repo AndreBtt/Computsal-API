@@ -57,6 +57,8 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/nextMatches", a.createNextMatches).Methods("POST")
 	a.Router.HandleFunc("/nextMatches", a.updateNextMatches).Methods("PUT")
 
+	a.Router.HandleFunc("/generateNextMatches", a.generateNextMatches).Methods("POST")
+
 	a.Router.HandleFunc("/scores", a.getScores).Methods("GET")
 
 	a.Router.HandleFunc("/captain/{teamName}", a.getCaptain).Methods("GET")
@@ -80,34 +82,3 @@ func main() {
 	defer a.DB.Close()
 	a.Run(":8080")
 }
-
-// [grupo][1<<horarios]
-
-// f(IDupla, horario) {
-
-// 	for horario {
-// 		if i ta livre {
-// 			for horario {
-// 				if j ta livre{
-// 					i é o horario da dupla1
-// 					j é o horario da dupla2
-// 				}
-// 			}
-// 			// tento pega com dupla1(time1, time2) + ...
-// 			// tento pega com dupla2(time3, time4) + ...
-// 		}
-// 	}
-// 	for horario {
-// 		if i ta livre {
-// 			// tento pega com dupla1(time1, time3) + ...
-// 			// tento pega com dupla2(time2, time4) + ...
-// 		}
-// 	}
-// 	for horario {
-// 		if i ta livre {
-// 			// tento pega com dupla1(time1, time4) + ...
-// 			// tento pega com dupla2(time2, time3) + ...
-// 		}
-// 	}
-
-// }

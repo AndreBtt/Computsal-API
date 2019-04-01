@@ -1,4 +1,4 @@
-package match
+package previousmatch
 
 import (
 	"database/sql"
@@ -6,7 +6,8 @@ import (
 	"sort"
 	"strconv"
 
-	score "github.com/AndreBtt/Computsal/api/components/score"
+	"github.com/AndreBtt/Computsal/api/components/nextmatch"
+	"github.com/AndreBtt/Computsal/api/components/score"
 )
 
 func GetPreviousMatches(db *sql.DB) ([]PreviousMatchList, error) {
@@ -139,58 +140,6 @@ func GetTeamPreviousMatches(db *sql.DB, teamName string) ([]PreviousMatchList, e
 	return matchList, nil
 }
 
-func bothScoreMatch(match1, match2 PreviousMatchesQuery) PreviousMatchList {
-	var currentMatch PreviousMatchList
-
-	currentMatch.ID = match1.ID
-	currentMatch.Phase = match1.Phase
-	currentMatch.Type = match1.Type
-	currentMatch.Team1 = match1.Team1
-	currentMatch.Team2 = match1.Team2
-	if currentMatch.Team1 == match1.Team {
-		currentMatch.Score1 = match1.Score
-		currentMatch.Score2 = match2.Score
-	} else {
-		currentMatch.Score1 = match2.Score
-		currentMatch.Score2 = match1.Score
-	}
-
-	return currentMatch
-}
-
-func oneScoreMatch(match PreviousMatchesQuery) PreviousMatchList {
-	var currentMatch PreviousMatchList
-
-	currentMatch.ID = match.ID
-	currentMatch.Phase = match.Phase
-	currentMatch.Type = match.Type
-	currentMatch.Team1 = match.Team1
-	currentMatch.Team2 = match.Team2
-	if currentMatch.Team1 == match.Team {
-		currentMatch.Score1 = match.Score
-		currentMatch.Score2 = 0
-	} else {
-		currentMatch.Score1 = 0
-		currentMatch.Score2 = match.Score
-	}
-
-	return currentMatch
-}
-
-func drawMatch(match PreviousMatchesQuery) PreviousMatchList {
-	var currentMatch PreviousMatchList
-
-	currentMatch.ID = match.ID
-	currentMatch.Phase = match.Phase
-	currentMatch.Type = match.Type
-	currentMatch.Team1 = match.Team1
-	currentMatch.Team2 = match.Team2
-	currentMatch.Score1 = 0
-	currentMatch.Score2 = 0
-
-	return currentMatch
-}
-
 func (matchDetails *PreviousMatch) GetPreviousMatch(db *sql.DB) error {
 	statement := fmt.Sprintf(`
 		SELECT 
@@ -282,7 +231,7 @@ func (match *NewMatch) CreateMatch(db *sql.DB) error {
 			Team2
 			Match type
 	*/
-	var matchDetails NextMatch
+	var matchDetails nextmatch.NextMatch
 	statement := fmt.Sprintf(`
 		SELECT 
 			fk_next_team1, fk_next_team2, type
@@ -299,7 +248,7 @@ func (match *NewMatch) CreateMatch(db *sql.DB) error {
 	}
 
 	// delete the next match related to the previous match
-	if err := DeleteNextMatch(db, match.NextMatchID); err != nil {
+	if err := nextmatch.DeleteNextMatch(db, match.NextMatchID); err != nil {
 		return err
 	}
 
@@ -310,7 +259,7 @@ func (match *NewMatch) CreateMatch(db *sql.DB) error {
 	return nil
 }
 
-func (match *NewMatch) updateMatchElimination(db *sql.DB, matchDetails NextMatch) error {
+func (match *NewMatch) updateMatchElimination(db *sql.DB, matchDetails nextmatch.NextMatch) error {
 	// get the winner team
 	score1 := 0
 	score2 := 0
@@ -377,7 +326,7 @@ func (match *NewMatch) updateMatchElimination(db *sql.DB, matchDetails NextMatch
 	if err != nil {
 		return err
 	}
-	var eliminationMatch EliminationMatchTable
+	var eliminationMatch nextmatch.EliminationMatchTable
 	for rows.Next() {
 		if err := rows.Scan(&eliminationMatch.ID, &eliminationMatch.Team1,
 			&eliminationMatch.Team2, &eliminationMatch.Type); err != nil {
@@ -430,7 +379,7 @@ func (match *NewMatch) updateMatchElimination(db *sql.DB, matchDetails NextMatch
 	return err
 }
 
-func (match *NewMatch) createPreviousMatch(db *sql.DB, matchDetails NextMatch) error {
+func (match *NewMatch) createPreviousMatch(db *sql.DB, matchDetails nextmatch.NextMatch) error {
 	// create group match
 	if matchDetails.Type == 0 {
 		return match.createPreviousMatchGroup(db, matchDetails)
@@ -439,7 +388,7 @@ func (match *NewMatch) createPreviousMatch(db *sql.DB, matchDetails NextMatch) e
 	return match.createPreviousMatchElimination(db, matchDetails)
 }
 
-func (match *NewMatch) createPreviousMatchElimination(db *sql.DB, matchDetails NextMatch) error {
+func (match *NewMatch) createPreviousMatchElimination(db *sql.DB, matchDetails nextmatch.NextMatch) error {
 	// search for the highest type
 	// it can only be in the elimination round or can be the current one
 	statement := fmt.Sprintf(`
@@ -510,7 +459,7 @@ func (match *NewMatch) createPreviousMatchElimination(db *sql.DB, matchDetails N
 
 }
 
-func (match *NewMatch) createPreviousMatchGroup(db *sql.DB, matchDetails NextMatch) error {
+func (match *NewMatch) createPreviousMatchGroup(db *sql.DB, matchDetails nextmatch.NextMatch) error {
 	// get the phase with the highest number between the two teams
 	phase, err := getMatchPhase(matchDetails, db)
 	if err != nil {
@@ -545,7 +494,7 @@ func (match *NewMatch) createPreviousMatchGroup(db *sql.DB, matchDetails NextMat
 	return err
 }
 
-func getMatchPhase(match NextMatch, db *sql.DB) (int, error) {
+func getMatchPhase(match nextmatch.NextMatch, db *sql.DB) (int, error) {
 	var phase int
 	statement := fmt.Sprintf(`
 		SELECT
@@ -584,259 +533,54 @@ func generateStatement(match *NewMatch, matchID int) string {
 	return statement
 }
 
-func DeleteNextMatch(db *sql.DB, matchID int) error {
-	statement := fmt.Sprintf(`
-		DELETE FROM
-			next_match
-		WHERE 
-			id = %d
-		`,
-		matchID)
-	_, err := db.Exec(statement)
-	return err
-}
+func bothScoreMatch(match1, match2 PreviousMatchesQuery) PreviousMatchList {
+	var currentMatch PreviousMatchList
 
-func UpdateNextMatches(db *sql.DB, matches []NextMatchUpdate) error {
-	if matches[0].Type == 0 {
-		// group phase round
-		err := updateGroupPhase(db, matches)
-		return err
-
+	currentMatch.ID = match1.ID
+	currentMatch.Phase = match1.Phase
+	currentMatch.Type = match1.Type
+	currentMatch.Team1 = match1.Team1
+	currentMatch.Team2 = match1.Team2
+	if currentMatch.Team1 == match1.Team {
+		currentMatch.Score1 = match1.Score
+		currentMatch.Score2 = match2.Score
 	} else {
-		// elimination round
-		err := updateEliminationPhase(db, matches)
-		return err
+		currentMatch.Score1 = match2.Score
+		currentMatch.Score2 = match1.Score
 	}
+
+	return currentMatch
 }
 
-func updateEliminationPhase(db *sql.DB, matches []NextMatchUpdate) error {
-	// Elimination phase can only update time
-	tx, err := db.Begin()
-	if err != nil {
-		return err
+func oneScoreMatch(match PreviousMatchesQuery) PreviousMatchList {
+	var currentMatch PreviousMatchList
+
+	currentMatch.ID = match.ID
+	currentMatch.Phase = match.Phase
+	currentMatch.Type = match.Type
+	currentMatch.Team1 = match.Team1
+	currentMatch.Team2 = match.Team2
+	if currentMatch.Team1 == match.Team {
+		currentMatch.Score1 = match.Score
+		currentMatch.Score2 = 0
+	} else {
+		currentMatch.Score1 = 0
+		currentMatch.Score2 = match.Score
 	}
 
-	for _, elem := range matches {
-		statement := fmt.Sprintf(`
-			UPDATE 
-				next_match 
-			SET 
-				time = %d	
-			WHERE id = %d`, elem.Time, elem.ID)
-		if _, err := tx.Exec(statement); err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return rollbackErr
-			}
-			return err
-		}
-	}
-
-	return tx.Commit()
+	return currentMatch
 }
 
-func updateGroupPhase(db *sql.DB, matches []NextMatchUpdate) error {
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
+func drawMatch(match PreviousMatchesQuery) PreviousMatchList {
+	var currentMatch PreviousMatchList
 
-	for _, elem := range matches {
-		statement := fmt.Sprintf(`
-			UPDATE 
-				next_match 
-			SET 
-				fk_next_team1 = '%s',
-				fk_next_team2 = '%s',
-				time = %d	
-			WHERE id = %d`, elem.Team1, elem.Team2, elem.Time, elem.ID)
-		if _, err := tx.Exec(statement); err != nil {
-			if rollbackErr := tx.Rollback(); rollbackErr != nil {
-				return rollbackErr
-			}
-			return err
-		}
-	}
+	currentMatch.ID = match.ID
+	currentMatch.Phase = match.Phase
+	currentMatch.Type = match.Type
+	currentMatch.Team1 = match.Team1
+	currentMatch.Team2 = match.Team2
+	currentMatch.Score1 = 0
+	currentMatch.Score2 = 0
 
-	return tx.Commit()
-}
-
-func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
-	statement := fmt.Sprintf(`
-		SELECT 
-			next_match.id,
-			next_match.fk_next_team1,
-			next_match.fk_next_team2,
-			coalesce(time.time, "") time,
-			next_match.type
-		FROM 
-			next_match
-			LEFT JOIN
-				time
-					ON time.id = next_match.time`)
-	rows, err := db.Query(statement)
-	if err != nil {
-		return nil, err
-	}
-
-	matches := []NextMatchList{}
-
-	for rows.Next() {
-		var newMatch NextMatchList
-		if err := rows.Scan(&newMatch.ID, &newMatch.Team1, &newMatch.Team2, &newMatch.Time, &newMatch.Type); err != nil {
-			return nil, err
-		}
-		matches = append(matches, newMatch)
-	}
-	rows.Close()
-
-	// group phase matches
-	if len(matches) == 0 || matches[0].Type == 0 {
-		sort.Slice(matches, func(i, j int) bool {
-			if matches[i].Time == "" {
-				return false
-			}
-			if matches[j].Time == "" {
-				return true
-			}
-			return matches[i].Time < matches[j].Time
-		})
-		return matches, nil
-	}
-
-	// elimination phase matches
-	statement = fmt.Sprintf(`
-		SELECT 
-			elimination_match.id,
-			elimination_match.team1,
-			elimination_match.team2,
-			elimination_match.type
-		FROM 
-			elimination_match`)
-	rows, err = db.Query(statement)
-	if err != nil {
-		return nil, err
-	}
-
-	for rows.Next() {
-		var newMatch NextMatchList
-		newMatch.Time = ""
-		if err := rows.Scan(&newMatch.ID, &newMatch.Team1, &newMatch.Team2, &newMatch.Type); err != nil {
-			return nil, err
-		}
-		matches = append(matches, newMatch)
-	}
-	rows.Close()
-
-	// sort by time and then by type
-	sort.Slice(matches, func(i, j int) bool {
-		if matches[i].Time == "" && matches[j].Time == "" {
-			return matches[i].Type < matches[j].Type
-		}
-		if matches[i].Time == "" {
-			return false
-		}
-		if matches[j].Time == "" {
-			return true
-		}
-		return matches[i].Time < matches[j].Time
-	})
-
-	return matches, nil
-}
-
-func CreateNextMatches(db *sql.DB, nextMatches []NextMatchCreate) error {
-	nextMatchesGenerate := make([]NextMatchTable, 0)
-	nextMatchesQueue := make([]NextMatchTable, 0)
-
-	typeNumber := 1
-	for _, elem := range nextMatches {
-		var next NextMatchTable
-		next.Team1 = elem.Team1
-		next.Team2 = elem.Team2
-		next.Time = -1
-		next.Type = typeNumber
-		nextMatchesGenerate = append(nextMatchesGenerate, next)
-		nextMatchesQueue = append(nextMatchesQueue, next)
-		typeNumber++
-	}
-
-	tx, err := db.Begin()
-	if err != nil {
-		return err
-	}
-
-	// delete all next matches
-	if _, err := tx.Exec(`TRUNCATE TABLE next_match`); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
-		}
-		return err
-	}
-
-	// delete all elimination matches
-	if _, err := tx.Exec(`TRUNCATE TABLE elimination_match`); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
-		}
-		return err
-	}
-
-	statement := fmt.Sprintf(`
-		INSERT INTO 
-			next_match(fk_next_team1, fk_next_team2, time, type)
-		VALUES `)
-	for _, elem := range nextMatchesGenerate {
-		value := fmt.Sprintf("('%s', '%s', %d, %d),", elem.Team1, elem.Team2, elem.Time, elem.Type)
-		statement += value
-	}
-	statement = statement[:len(statement)-1]
-
-	// insert next matches into next_match table
-	if _, err := tx.Exec(statement); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
-		}
-		return err
-	}
-
-	nextMatchesGenerate = make([]NextMatchTable, 0)
-
-	for len(nextMatchesQueue) > 1 {
-		match1 := nextMatchesQueue[0]
-		match2 := nextMatchesQueue[1]
-		nextMatchesQueue = nextMatchesQueue[2:]
-
-		var next NextMatchTable
-		next.Team1 = fmt.Sprintf("flag_type_%d", match1.Type)
-		next.Team2 = fmt.Sprintf("flag_type_%d", match2.Type)
-		next.Type = typeNumber
-		nextMatchesGenerate = append(nextMatchesGenerate, next)
-		nextMatchesQueue = append(nextMatchesQueue, next)
-		typeNumber++
-	}
-
-	// don't have next matches, just final game
-	if len(nextMatchesGenerate) == 0 {
-		return tx.Commit()
-	}
-
-	statement = fmt.Sprintf(`
-		INSERT INTO 
-			elimination_match(team1, team2, type)
-		VALUES `)
-	for _, elem := range nextMatchesGenerate {
-		value := fmt.Sprintf("('%s', '%s', %d),", elem.Team1, elem.Team2, elem.Type)
-		statement += value
-	}
-	statement = statement[:len(statement)-1]
-
-	// insert next matches into elimination_match table
-	if _, err := tx.Exec(statement); err != nil {
-		if rollbackErr := tx.Rollback(); rollbackErr != nil {
-			return rollbackErr
-		}
-		return err
-	}
-
-	return tx.Commit()
+	return currentMatch
 }
