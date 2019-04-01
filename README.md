@@ -10,7 +10,9 @@ some text....
 
 ### [Groups](api/components/group/README.md)     
 
-### [Matches](api/components/match/README.md)
+### [Previous Matches](api/components/previousmatch/README.md)
+
+### [Next Matches](api/components/nextmatch/README.md)
 
 ### [Score](api/components/score/README.md)
 
