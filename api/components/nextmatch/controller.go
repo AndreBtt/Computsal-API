@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"sort"
+	"strconv"
 )
 
 type Match struct {
@@ -26,7 +27,7 @@ func max(a, b int) int {
 
 func getTeamsGroup(allTeams []Team, groupNumber int) []Team {
 	var teams []Team
-	for _, elem := range teams {
+	for _, elem := range allTeams {
 		if elem.Group == groupNumber {
 			teams = append(teams, elem)
 		}
@@ -107,22 +108,77 @@ func getCombinationMatches(teams []Team) [][]Match {
 		}
 	}
 
+	// no futuro deve tirar os times que tem partidas anteriores ja jogadas
+	// é so receber todas as partidas passadas, nao importa quem ganha ou perde msm
+
 	return correctComb
 }
 
+func permutations(arr []int) [][]int {
+	var helper func([]int, int)
+	res := [][]int{}
+
+	helper = func(arr []int, n int) {
+		if n == 1 {
+			tmp := make([]int, len(arr))
+			copy(tmp, arr)
+			res = append(res, tmp)
+		} else {
+			for i := 0; i < n; i++ {
+				helper(arr, n-1)
+				if n%2 == 1 {
+					tmp := arr[i]
+					arr[i] = arr[n-1]
+					arr[n-1] = tmp
+				} else {
+					tmp := arr[0]
+					arr[0] = arr[n-1]
+					arr[n-1] = tmp
+				}
+			}
+		}
+	}
+	helper(arr, len(arr))
+	return res
+}
+
 func getTimePermutation(teamSize int, timeQt int) [][]int {
-	return nil
+	var v []int
+	for i := 0; i < teamSize; i++ {
+		v = append(v, i)
+	}
+	for len(v) < timeQt {
+		v = append(v, -1)
+	}
+
+	perms := permutations(v)
+
+	var correctPerms [][]int
+	equal := make(map[string]bool)
+	for _, p := range perms {
+		var key string
+		// create a unique key for the matches combination
+		for _, teams := range p {
+			key += strconv.Itoa(teams)
+		}
+		if _, ok := equal[key]; !ok {
+			// this key does't exist
+			correctPerms = append(correctPerms, p)
+			equal[key] = true
+		}
+	}
+
+	return correctPerms
 }
 
 // timeQt = how many times we have
 // time = bit mask time where 0 is available time, start with (1 << timeQt)
 func solve(groupNumber int, timeQt int, time int, allTeams []Team) int {
-	if groupNumber == -1 {
+	if groupNumber == 0 {
 		return 0
 	}
 
 	teamsGroup := getTeamsGroup(allTeams, groupNumber)
-
 	matchCombination := getCombinationMatches(teamsGroup)
 
 	// len(matchCombination[0]) indicates how many matches we have
@@ -134,7 +190,6 @@ func solve(groupNumber int, timeQt int, time int, allTeams []Team) int {
 	bigAns := 0
 
 	for _, combMatch := range matchCombination {
-
 		ans := 0
 
 		for _, combTime := range timePermutation {
@@ -158,7 +213,6 @@ func solve(groupNumber int, timeQt int, time int, allTeams []Team) int {
 
 			points := 0
 			newTime := time
-
 			for h, t := range combTime {
 				if t != -1 {
 					// match with index t plays on time h
@@ -170,11 +224,10 @@ func solve(groupNumber int, timeQt int, time int, allTeams []Team) int {
 						// check if the second team of the match wants to play on time h
 						points++
 					}
-					// set that time h is no avaible more
+					// set time h is no available more
 					newTime = (time | (1 << uint(h)))
 				}
 			}
-
 			ans = max(ans, solve(groupNumber-1, timeQt, newTime, allTeams)+points)
 		}
 
@@ -185,23 +238,92 @@ func solve(groupNumber int, timeQt int, time int, allTeams []Team) int {
 }
 
 func GenerateNextMatches(db *sql.DB) error {
-	// [grupo][1<<horarios]
+	// get all available times
+	statement := fmt.Sprintf(`
+		SELECT 
+			time.time
+		FROM
+			time
+		ORDER BY time`)
+	rows, err := db.Query(statement)
+	if err != nil {
+		return err
+	}
 
+	timeIdx := make(map[string]int)
+
+	var times []string
+	for rows.Next() {
+		var t string
+		if err := rows.Scan(&t); err != nil {
+			return err
+		}
+		timeIdx[t] = len(times)
+		times = append(times, t)
+	}
+	rows.Close()
+	timeQt := len(times)
+
+	// get all teams with name e group_number
+	statement = fmt.Sprintf(`
+		SELECT 
+			name,
+			group_number
+		FROM 
+			team`)
+	rows, err = db.Query(statement)
+	if err != nil {
+		return err
+	}
+
+	groupNumber := -1
 	var teams []Team
 
-	for i := 0; i < 6; i++ {
-		s := fmt.Sprintf("t%d", i+1)
-		t := Team{
-			Name: s,
+	teamIdx := make(map[string]int)
+
+	for rows.Next() {
+		var t Team
+		if err := rows.Scan(&t.Name, &t.Group); err != nil {
+			return err
 		}
+		t.Times = make([]bool, timeQt)
+		for i := 0; i < timeQt; i++ {
+			t.Times[i] = true
+		}
+		groupNumber = max(groupNumber, t.Group)
+		teamIdx[t.Name] = len(teams)
 		teams = append(teams, t)
 	}
+	rows.Close()
 
-	tt := getCombinationMatches(teams)
-
-	for _, elem := range tt {
-		fmt.Println(elem)
+	statement = fmt.Sprintf(`
+		SELECT 
+			fk_schedule_team AS team,
+			time.time AS time
+		FROM 
+			schedule
+		INNER JOIN
+			time
+				ON time.id = fk_schedule_time`)
+	rows, err = db.Query(statement)
+	if err != nil {
+		return err
 	}
+
+	for rows.Next() {
+		var currName string
+		var currTime string
+		if err := rows.Scan(&currName, &currTime); err != nil {
+			return err
+		}
+
+		teams[teamIdx[currName]].Times[timeIdx[currTime]] = false
+	}
+	rows.Close()
+
+	// [grupo][1<<horarios]
+	resp := solve(groupNumber, timeQt, (1 << uint(timeQt)), teams)
+	fmt.Println(resp)
 
 	return fmt.Errorf("Not implemented yet")
 }
