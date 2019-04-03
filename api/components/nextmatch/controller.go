@@ -7,9 +7,20 @@ import (
 	"strconv"
 )
 
+type PreviousMatch struct {
+	Team1 string
+	Team2 string
+}
+
 type Match struct {
 	Team1 Team
 	Team2 Team
+}
+
+type NextMatchGenerate struct {
+	Team1 string
+	Team2 string
+	Time  int
 }
 
 type Team struct {
@@ -86,30 +97,42 @@ func combinationMatches(combMatches *[][]Match, currMatch []Match, mask int, pai
 	}
 }
 
-func getCombinationMatches(teams []Team) [][]Match {
+func getCombinationMatches(teams []Team, prevMatches []PreviousMatch) [][]Match {
 	var combMatches [][]Match
 	var currMatch []Match
 	combinationMatches(&combMatches, currMatch, (1 << uint(len(teams))), 0, teams)
 
-	// taking off equal elements
+	// saving previous matches in a map
+	previousMatches := make(map[string]bool)
+	for _, prevM := range prevMatches {
+		var key1, key2 string
+		key1 = prevM.Team1 + prevM.Team2
+		key2 = prevM.Team2 + prevM.Team1
+		previousMatches[key1] = true
+		previousMatches[key2] = true
+	}
+
+	// taking off equal elements and past matches
 	equal := make(map[string]bool)
 	var correctComb [][]Match
 	for _, comb := range combMatches {
 		var key string
 		// create a unique key for the matches combination
+		validMatch := true
 		for _, match := range comb {
 			key += match.Team1.Name
 			key += match.Team2.Name
+			currMatch := match.Team1.Name + match.Team2.Name
+			if previousMatches[currMatch] {
+				validMatch = false
+			}
 		}
-		if _, ok := equal[key]; !ok {
+		if validMatch && equal[key] == false {
 			// this key does't exist
 			correctComb = append(correctComb, comb)
 			equal[key] = true
 		}
 	}
-
-	// no futuro deve tirar os times que tem partidas anteriores ja jogadas
-	// é so receber todas as partidas passadas, nao importa quem ganha ou perde msm
 
 	return correctComb
 }
@@ -171,15 +194,92 @@ func getTimePermutation(teamSize int, timeQt int) [][]int {
 	return correctPerms
 }
 
+func recoverAns(groupNumber int, times []string, totalAns int, allTeams []Team, dp *[][]int, prevMatches []PreviousMatch) error {
+	timeQt := len(times)
+	timeAns := (1 << uint(timeQt))
+	acc := 0
+	var nextMatches []NextMatchGenerate
+
+	for group := groupNumber; group > 0; group-- {
+
+		end := false
+
+		teamsGroup := getTeamsGroup(allTeams, group)
+		matchCombination := getCombinationMatches(teamsGroup, prevMatches)
+		timePermutation := getTimePermutation(len(matchCombination[0]), timeQt)
+		for _, combMatch := range matchCombination {
+			for _, combTime := range timePermutation {
+				ok := true
+				for h, t := range combTime {
+					if t != -1 {
+						if ((1 << uint(h)) & timeAns) > 0 {
+							ok = false
+							break
+						}
+					}
+				}
+				if !ok {
+					continue
+				}
+
+				points := 0
+				newTime := timeAns
+				for h, t := range combTime {
+					if t != -1 {
+						if combMatch[t].Team1.Times[h] == true {
+							points++
+						}
+						if combMatch[t].Team2.Times[h] == true {
+							points++
+						}
+						newTime = (newTime | (1 << uint(h)))
+					}
+				}
+
+				currentAns := solve(groupNumber-1, timeQt, newTime, allTeams, dp, prevMatches) + points
+				if acc+currentAns == totalAns {
+					end = true
+					for h, t := range combTime {
+						if t != -1 {
+							timeAns = (timeAns | (1 << uint(h)))
+							var nxtM NextMatchGenerate
+							nxtM.Team1 = combMatch[t].Team1.Name
+							nxtM.Team2 = combMatch[t].Team2.Name
+							nxtM.Time = h
+							nextMatches = append(nextMatches, nxtM)
+						}
+					}
+					acc += points
+				}
+				if end {
+					break
+				}
+			}
+			if end {
+				break
+			}
+		}
+	}
+
+	for _, elem := range nextMatches {
+		fmt.Println(elem.Team1, elem.Team2, times[elem.Time])
+	}
+
+	return fmt.Errorf("Not implemented yet")
+}
+
 // timeQt = how many times we have
 // time = bit mask time where 0 is available time, start with (1 << timeQt)
-func solve(groupNumber int, timeQt int, time int, allTeams []Team) int {
+func solve(groupNumber int, timeQt int, time int, allTeams []Team, dp *[][]int, prevMatches []PreviousMatch) int {
 	if groupNumber == 0 {
 		return 0
 	}
+	if (*dp)[groupNumber][time] != -1 {
+		return (*dp)[groupNumber][time]
+	}
 
 	teamsGroup := getTeamsGroup(allTeams, groupNumber)
-	matchCombination := getCombinationMatches(teamsGroup)
+	matchCombination := getCombinationMatches(teamsGroup, prevMatches)
 
 	// len(matchCombination[0]) indicates how many matches we have
 	// this return all combinations of matches and times
@@ -225,19 +325,21 @@ func solve(groupNumber int, timeQt int, time int, allTeams []Team) int {
 						points++
 					}
 					// set time h is no available more
-					newTime = (time | (1 << uint(h)))
+					newTime = (newTime | (1 << uint(h)))
 				}
 			}
-			ans = max(ans, solve(groupNumber-1, timeQt, newTime, allTeams)+points)
+			ans = max(ans, solve(groupNumber-1, timeQt, newTime, allTeams, dp, prevMatches)+points)
 		}
 
 		bigAns = max(bigAns, ans)
 	}
 
+	(*dp)[groupNumber][time] = max((*dp)[groupNumber][time], bigAns)
+
 	return bigAns
 }
 
-func GenerateNextMatches(db *sql.DB) error {
+func getAvailableTimes(db *sql.DB) (map[string]int, []string, int, error) {
 	// get all available times
 	statement := fmt.Sprintf(`
 		SELECT 
@@ -247,7 +349,7 @@ func GenerateNextMatches(db *sql.DB) error {
 		ORDER BY time`)
 	rows, err := db.Query(statement)
 	if err != nil {
-		return err
+		return nil, nil, 0, err
 	}
 
 	timeIdx := make(map[string]int)
@@ -256,7 +358,7 @@ func GenerateNextMatches(db *sql.DB) error {
 	for rows.Next() {
 		var t string
 		if err := rows.Scan(&t); err != nil {
-			return err
+			return nil, nil, 0, err
 		}
 		timeIdx[t] = len(times)
 		times = append(times, t)
@@ -264,16 +366,45 @@ func GenerateNextMatches(db *sql.DB) error {
 	rows.Close()
 	timeQt := len(times)
 
-	// get all teams with name e group_number
-	statement = fmt.Sprintf(`
+	return timeIdx, times, timeQt, nil
+}
+
+func getPreviousMatches(db *sql.DB) ([]PreviousMatch, error) {
+	statement := fmt.Sprintf(`
+		SELECT 
+			fk_match_team1 as team1,
+			fk_match_team2 as team2
+		FROM
+			previous_match`)
+	rows, err := db.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+
+	var prevMatches []PreviousMatch
+
+	for rows.Next() {
+		var p PreviousMatch
+		if err := rows.Scan(&p.Team1, &p.Team2); err != nil {
+			return nil, err
+		}
+		prevMatches = append(prevMatches, p)
+	}
+	rows.Close()
+
+	return prevMatches, nil
+}
+
+func getTeams(db *sql.DB, timeQt int) (int, []Team, map[string]int, error) {
+	statement := fmt.Sprintf(`
 		SELECT 
 			name,
 			group_number
 		FROM 
 			team`)
-	rows, err = db.Query(statement)
+	rows, err := db.Query(statement)
 	if err != nil {
-		return err
+		return 0, nil, nil, err
 	}
 
 	groupNumber := -1
@@ -284,7 +415,7 @@ func GenerateNextMatches(db *sql.DB) error {
 	for rows.Next() {
 		var t Team
 		if err := rows.Scan(&t.Name, &t.Group); err != nil {
-			return err
+			return 0, nil, nil, err
 		}
 		t.Times = make([]bool, timeQt)
 		for i := 0; i < timeQt; i++ {
@@ -296,7 +427,33 @@ func GenerateNextMatches(db *sql.DB) error {
 	}
 	rows.Close()
 
-	statement = fmt.Sprintf(`
+	return groupNumber, teams, teamIdx, nil
+}
+
+func GenerateNextMatches(db *sql.DB) error {
+
+	// timeIdx idicates where a time "HH:MM:SS" is index on array times
+	// times is all available times
+	// timeQt is how many available times it has
+	timeIdx, times, timeQt, err := getAvailableTimes(db)
+	if err != nil {
+		return err
+	}
+
+	// get all previous matches
+	prevMatches, err := getPreviousMatches(db)
+	if err != nil {
+		return err
+	}
+
+	// get all teams with name e group_number
+	groupNumber, teams, teamIdx, err := getTeams(db, timeQt)
+	if err != nil {
+		return err
+	}
+
+	// set team's time availability
+	statement := fmt.Sprintf(`
 		SELECT 
 			fk_schedule_team AS team,
 			time.time AS time
@@ -305,7 +462,7 @@ func GenerateNextMatches(db *sql.DB) error {
 		INNER JOIN
 			time
 				ON time.id = fk_schedule_time`)
-	rows, err = db.Query(statement)
+	rows, err := db.Query(statement)
 	if err != nil {
 		return err
 	}
@@ -321,11 +478,19 @@ func GenerateNextMatches(db *sql.DB) error {
 	}
 	rows.Close()
 
-	// [grupo][1<<horarios]
-	resp := solve(groupNumber, timeQt, (1 << uint(timeQt)), teams)
-	fmt.Println(resp)
+	// set all dp positions to -1
+	dp := make([][]int, groupNumber+1)
+	for i := 0; i <= groupNumber; i++ {
+		dp[i] = make([]int, (1 << uint(timeQt+1)))
+		for j := 0; j < len(dp[i]); j++ {
+			dp[i][j] = -1
+		}
+	}
 
-	return fmt.Errorf("Not implemented yet")
+	ans := solve(groupNumber, timeQt, (1 << uint(timeQt)), teams, &dp, prevMatches)
+
+	// recover the answer and insert in the data base
+	return recoverAns(groupNumber, times, ans, teams, &dp, prevMatches)
 }
 
 func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
