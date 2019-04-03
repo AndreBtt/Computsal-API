@@ -41,3 +41,25 @@ type EliminationMatchTable struct {
 	Team2 string `json:"team2"`
 	Type  int    `json:"type"`
 }
+
+type PreviousMatch struct {
+	Team1 string
+	Team2 string
+}
+
+type Match struct {
+	Team1 Team
+	Team2 Team
+}
+
+type NextMatchGenerate struct {
+	Team1 string
+	Team2 string
+	Time  int
+}
+
+type Team struct {
+	Name  string
+	Times []bool
+	Group int
+}

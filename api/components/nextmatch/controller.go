@@ -7,28 +7,6 @@ import (
 	"strconv"
 )
 
-type PreviousMatch struct {
-	Team1 string
-	Team2 string
-}
-
-type Match struct {
-	Team1 Team
-	Team2 Team
-}
-
-type NextMatchGenerate struct {
-	Team1 string
-	Team2 string
-	Time  int
-}
-
-type Team struct {
-	Name  string
-	Times []bool
-	Group int
-}
-
 func max(a, b int) int {
 	if a > b {
 		return a
@@ -194,7 +172,7 @@ func getTimePermutation(teamSize int, timeQt int) [][]int {
 	return correctPerms
 }
 
-func recoverAns(groupNumber int, times []string, totalAns int, allTeams []Team, dp *[][]int, prevMatches []PreviousMatch) error {
+func recoverAns(db *sql.DB, groupNumber int, times []string, totalAns int, allTeams []Team, dp *[][]int, prevMatches []PreviousMatch) error {
 	timeQt := len(times)
 	timeAns := (1 << uint(timeQt))
 	acc := 0
@@ -261,11 +239,65 @@ func recoverAns(groupNumber int, times []string, totalAns int, allTeams []Team, 
 		}
 	}
 
-	for _, elem := range nextMatches {
-		fmt.Println(elem.Team1, elem.Team2, times[elem.Time])
+	statement := fmt.Sprintf(`
+		SELECT 
+			time.time,
+			time.id
+		FROM
+			time`)
+	rows, err := db.Query(statement)
+	if err != nil {
+		return err
 	}
 
-	return fmt.Errorf("Not implemented yet")
+	timesID := make(map[string]int)
+	for rows.Next() {
+		var t string
+		var id int
+		if err := rows.Scan(&t, &id); err != nil {
+			return err
+		}
+		timesID[t] = id
+	}
+	rows.Close()
+
+	tx, err := db.Begin()
+	if err != nil {
+		return err
+	}
+
+	// delete all next matches
+	if _, err := tx.Exec(`TRUNCATE TABLE next_match`); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	statement = fmt.Sprintf(`INSERT INTO next_match(fk_next_team1, fk_next_team2, time, type) VALUES`)
+	for _, elem := range nextMatches {
+		values := fmt.Sprintf("('%s', '%s', %d, 0),", elem.Team1, elem.Team2, timesID[times[elem.Time]])
+		statement += values
+	}
+	statement = statement[:len(statement)-1]
+
+	// create next matches
+	if _, err := tx.Exec(statement); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	// delete all schedules
+	if _, err := tx.Exec(`TRUNCATE TABLE schedule`); err != nil {
+		if rollbackErr := tx.Rollback(); rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	return tx.Commit()
 }
 
 // timeQt = how many times we have
@@ -490,7 +522,7 @@ func GenerateNextMatches(db *sql.DB) error {
 	ans := solve(groupNumber, timeQt, (1 << uint(timeQt)), teams, &dp, prevMatches)
 
 	// recover the answer and insert in the data base
-	return recoverAns(groupNumber, times, ans, teams, &dp, prevMatches)
+	return recoverAns(db, groupNumber, times, ans, teams, &dp, prevMatches)
 }
 
 func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
