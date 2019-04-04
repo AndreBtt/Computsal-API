@@ -15,9 +15,8 @@ type App struct {
 	DB     *sql.DB
 }
 
-func (a *App) Initialize(user, password, dbname string) {
-	connectionString := fmt.Sprintf("%s:%s@/%s", user, password, dbname)
-
+func (a *App) Initialize(user, password, host, dbname string) {
+	connectionString := fmt.Sprintf("%s:%s@tcp(%s)/%s", user, password, host, dbname)
 	var err error
 	a.DB, err = sql.Open("mysql", connectionString)
 	if err != nil {
@@ -78,7 +77,8 @@ func (a *App) Run(addr string) {
 
 func main() {
 	a := App{}
-	a.Initialize("root", "andre1995", "Computsal")
+	a.Initialize("b2c6d201e49ec1", "e331b83e", "us-cdbr-iron-east-03.cleardb.net", "heroku_1ebb06b9cd0f822")
+	// a.Initialize("root", "andre1995", "localhost", "Computsal")
 	defer a.DB.Close()
 	a.Run(":8080")
 }

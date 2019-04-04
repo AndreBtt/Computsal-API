@@ -53,3 +53,10 @@
 ```
 * The order of the array matters, it creates the next matches based on this order
 * http StatusCreated (201) will be sent if it has been completed correctly
+
+
+## Generate next matches
+
+* HTTP Request : ```POST http://api.com/generateNextMatches```
+* It will create the best match possible based on the schedule from each team
+* http StatusOK (200) will be sent if it has been completed correctly
