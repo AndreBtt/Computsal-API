@@ -9,6 +9,8 @@ COPY . .
 
 WORKDIR /go/src/github.com/AndreBtt/Computsal/api/config
 
-ENTRYPOINT go run *.go
+# ENTRYPOINT go run *.go
 
-EXPOSE 8080
+# EXPOSE 8080:8080/tcp
+
+CMD go run *.go --bind 8080:$PORT
