@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/mux"
@@ -80,5 +81,9 @@ func main() {
 	a.Initialize("b2c6d201e49ec1", "e331b83e", "us-cdbr-iron-east-03.cleardb.net", "heroku_1ebb06b9cd0f822")
 	// a.Initialize("root", "andre1995", "localhost", "Computsal")
 	defer a.DB.Close()
-	a.Run(":8080")
+	port := os.Getenv("PORT") // Heroku provides the port to bind to
+	if port == "" {
+		port = "8080"
+	}
+	a.Run(":" + port)
 }
