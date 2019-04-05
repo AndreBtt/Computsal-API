@@ -80,5 +80,5 @@ func main() {
 	a.Initialize("b2c6d201e49ec1", "e331b83e", "us-cdbr-iron-east-03.cleardb.net", "heroku_1ebb06b9cd0f822")
 	// a.Initialize("root", "andre1995", "localhost", "Computsal")
 	defer a.DB.Close()
-	a.Run(":8000")
+	a.Run(":8080")
 }
