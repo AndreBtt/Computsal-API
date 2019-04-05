@@ -12,5 +12,3 @@ WORKDIR /go/src/github.com/AndreBtt/Computsal/api/config
 RUN go build -o app
 
 CMD ./app
-
-# EXPOSE 8080:8080/tcp
