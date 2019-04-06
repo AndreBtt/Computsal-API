@@ -78,7 +78,7 @@ func (a *App) Run(addr string) {
 
 func main() {
 	a := App{}
-	a.Initialize("b2c6d201e49ec1", "e331b83e", "us-cdbr-iron-east-03.cleardb.net", "heroku_1ebb06b9cd0f822")
+	a.Initialize("b19c3c443cc519", "9b263fae", "us-cdbr-iron-east-03.cleardb.net", "heroku_3922f2efcde3158")
 	// a.Initialize("root", "andre1995", "localhost", "Computsal")
 	defer a.DB.Close()
 	port := os.Getenv("PORT") // Heroku provides the port to bind to
