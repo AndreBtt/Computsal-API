@@ -1,11 +1,5 @@
 # Computsal
 
-## Start
-
-* First build docker image `docker build -t computsal:api .`
-* Since the image is created get its ID using the command `docker images`
-* To start the server run the command `docker run -p 8080:8080/tcp "ImageID"` 
-
 ## API - Endpoints
 
 ### [Players](components/player/README.md)
