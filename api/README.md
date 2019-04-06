@@ -8,20 +8,20 @@
 
 ## API - Endpoints
 
-### [Players](api/components/player/README.md)
+### [Players](components/player/README.md)
 
-### [Teams](api/components/team/README.md)
+### [Teams](components/team/README.md)
 
-### [Groups](api/components/group/README.md)     
+### [Groups](components/group/README.md)     
 
-### [Previous Matches](api/components/previousmatch/README.md)
+### [Previous Matches](components/previousmatch/README.md)
 
-### [Next Matches](api/components/nextmatch/README.md)
+### [Next Matches](components/nextmatch/README.md)
 
-### [Score](api/components/score/README.md)
+### [Score](components/score/README.md)
 
-### [Captain](api/components/captain/README.md)
+### [Captain](components/captain/README.md)
 
-### [Time](api/components/time/README.md)
+### [Time](components/time/README.md)
 
-### [Schedule](api/components/schedule/README.md)
+### [Schedule](components/schedule/README.md)
