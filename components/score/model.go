@@ -1,7 +1,7 @@
 package score
 
 import (
-	player "github.com/AndreBtt/Computsal/api/components/player"
+	player "github.com/AndreBtt/Computsal/components/player"
 )
 
 type PlayerScore struct {

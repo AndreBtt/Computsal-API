@@ -1,6 +1,6 @@
 package group
 
-import "github.com/AndreBtt/Computsal/api/components/team"
+import "github.com/AndreBtt/Computsal/components/team"
 
 type GroupList struct {
 	Number int `json:"group_number"`

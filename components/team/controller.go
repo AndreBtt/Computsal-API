@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/AndreBtt/Computsal/api/components/captain"
-	"github.com/AndreBtt/Computsal/api/components/player"
-	"github.com/AndreBtt/Computsal/api/components/previousmatch"
+	"github.com/AndreBtt/Computsal/components/captain"
+	"github.com/AndreBtt/Computsal/components/player"
+	"github.com/AndreBtt/Computsal/components/previousmatch"
 )
 
 func CreateTeam(db *sql.DB, t TeamCreate) error {

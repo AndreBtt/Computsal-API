@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strconv"
 
-	"github.com/AndreBtt/Computsal/api/components/nextmatch"
-	"github.com/AndreBtt/Computsal/api/components/score"
+	"github.com/AndreBtt/Computsal/components/nextmatch"
+	"github.com/AndreBtt/Computsal/components/score"
 )
 
 func GetPreviousMatches(db *sql.DB) ([]PreviousMatchList, error) {

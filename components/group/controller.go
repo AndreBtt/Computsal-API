@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/AndreBtt/Computsal/api/components/previousmatch"
-	"github.com/AndreBtt/Computsal/api/components/team"
+	"github.com/AndreBtt/Computsal/components/previousmatch"
+	"github.com/AndreBtt/Computsal/components/team"
 )
 
 func GetGroups(db *sql.DB) ([]GroupList, error) {

@@ -1,8 +1,8 @@
 package team
 
 import (
-	"github.com/AndreBtt/Computsal/api/components/player"
-	"github.com/AndreBtt/Computsal/api/components/previousmatch"
+	"github.com/AndreBtt/Computsal/components/player"
+	"github.com/AndreBtt/Computsal/components/previousmatch"
 )
 
 type TeamTable struct {

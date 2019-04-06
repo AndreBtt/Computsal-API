@@ -1,7 +1,7 @@
 package previousmatch
 
 import (
-	score "github.com/AndreBtt/Computsal/api/components/score"
+	score "github.com/AndreBtt/Computsal/components/score"
 )
 
 type PreviousMatchesQuery struct {
