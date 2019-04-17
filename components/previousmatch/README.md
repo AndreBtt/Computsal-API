@@ -20,6 +20,7 @@
 * The list is sorted from the most recent games to the oldest ones
 * Type is 0 if it is a group match or different then 0 if it is an elimination match
 * Type diffente then zero can be values 1,2,4,8,16,...,2<sup>k</sup> where k >= 0
+* Phase indicates the round's number which that game happened
 * This means that if type is 1 it's the final game, 2 is the semi-final game, and so on
 
 
