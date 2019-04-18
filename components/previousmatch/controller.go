@@ -238,6 +238,29 @@ func (matchDetails *PreviousMatch) GetPreviousMatch(db *sql.DB) error {
 		}
 	}
 
+	// add photo to team1 and team2
+	statement = fmt.Sprintf("SELECT name, photo FROM team")
+	rows, err = db.Query(statement)
+	if err != nil {
+		return err
+	}
+
+	for rows.Next() {
+		var tName, tPhoto string
+		if err := rows.Scan(&tName, &tPhoto); err != nil {
+			return err
+		}
+
+		if matchDetails.Team1 == tName {
+			matchDetails.Photo1 = tPhoto
+		}
+
+		if matchDetails.Team2 == tName {
+			matchDetails.Photo2 = tPhoto
+		}
+	}
+	rows.Close()
+
 	return nil
 }
 
