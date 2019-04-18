@@ -64,6 +64,29 @@ func GetPreviousMatches(db *sql.DB) ([]PreviousMatchList, error) {
 		matchList = append(matchList, currentMatch)
 	}
 
+	// add photo to team1 and team2
+	statement = fmt.Sprintf("SELECT name, photo FROM team")
+	rows, err = db.Query(statement)
+	if err != nil {
+		return nil, err
+	}
+
+	for rows.Next() {
+		var tName, tPhoto string
+		if err := rows.Scan(&tName, &tPhoto); err != nil {
+			return nil, err
+		}
+		for i, elem := range matchList {
+			if elem.Team1 == tName {
+				matchList[i].Photo1 = tPhoto
+			}
+			if elem.Team2 == tName {
+				matchList[i].Photo2 = tPhoto
+			}
+		}
+	}
+	rows.Close()
+
 	// sort first by type
 	// if both have type greater then zero, the one with lower type goes first
 	// if both have type igual to zero, the one with higher phase goes first

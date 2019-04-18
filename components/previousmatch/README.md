@@ -10,6 +10,8 @@
             "id":        int,    
             "team1":     string, 
             "team2":     string,
+            "photo1":    string, 
+            "photo2":    string,
             "score1":    int,    
             "score2":    int,    
             "type":      int,    

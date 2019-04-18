@@ -15,11 +15,13 @@ type NextMatchUpdate struct {
 }
 
 type NextMatchList struct {
-	ID    int    `json:"id"`
-	Team1 string `json:"team1"`
-	Team2 string `json:"team2"`
-	Type  int    `json:"type"`
-	Time  string `json:"time"`
+	ID     int    `json:"id"`
+	Team1  string `json:"team1"`
+	Team2  string `json:"team2"`
+	Photo1 string `json:"photo1"`
+	Photo2 string `json:"photo2"`
+	Type   int    `json:"type"`
+	Time   string `json:"time"`
 }
 
 type NextMatchTable struct {
