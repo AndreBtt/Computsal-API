@@ -75,6 +75,8 @@
             "id": int,
             "team1": string,
             "team2": string,
+            "photo1":    string, 
+            "photo2":    string,
             "yellowCard1": int,
             "yellowCard2": int,
             "redCard1": int,
