@@ -395,6 +395,20 @@ func (a *App) getGroups(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, groups)
 }
 
+func (a *App) getGroupsDetail(w http.ResponseWriter, r *http.Request) {
+	groups, err := group.GetGroupsDetail(a.DB)
+	if err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Groups not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+	respondWithJSON(w, http.StatusOK, groups)
+}
+
 func (a *App) updateGroup(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	groupID, err := strconv.Atoi(vars["groupNumber"])

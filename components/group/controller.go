@@ -35,6 +35,23 @@ func GetGroups(db *sql.DB) ([]GroupList, error) {
 	return groups, nil
 }
 
+func GetGroupsDetail(db *sql.DB) ([]Group, error) {
+	groupsNumber, err := GetGroups(db)
+	if err != nil {
+		return nil, err
+	}
+	groups := make([]Group, 0)
+	for _, elem := range groupsNumber {
+		g := Group{Number: elem.Number}
+		if err := g.GetGroup(db); err != nil {
+			return nil, err
+		}
+		groups = append(groups, g)
+	}
+
+	return groups, nil
+}
+
 func UpdateGroup(db *sql.DB, groupID int, gp []GroupUpdateTeam) error {
 	var addTeam []string
 	var removeTeam []string

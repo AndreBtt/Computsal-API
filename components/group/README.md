@@ -12,6 +12,32 @@
     ]
     ```
 
+## Get groups detail
+
+* HTTP Request : ```GET http://api.com/groupsDetail```
+* Return a list object in json format as follow
+    ``` 
+    [
+        {
+            "group_number": int,
+            "Team": [
+                {
+                    "id":               int,
+                    "name":             string,
+                    "photo":            string,
+                    "win":              int,
+                    "lose":             int,
+                    "draw":             int,
+                    "goals_pro":        int,
+                    "goals_against":    int,
+                    "points":           int
+                },...
+            ]
+        }
+    ]
+    ```
+* Teams are ordered first by points than winnings, draws, goals_pro and finaly goals_against
+
 ## Update a group
 
 * HTTP Request : ```PUT http://api.com/groups/{groupNumber}```
