@@ -20,7 +20,7 @@
     [
         {
             "group_number": int,
-            "Team": [
+            "teams": [
                 {
                     "id":               int,
                     "name":             string,
@@ -76,7 +76,7 @@
     ``` 
     {
         "group_number": int,
-        "Team": [
+        "teams": [
             {
                 "id":               int,
                 "name":             string,
