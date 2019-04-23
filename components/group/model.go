@@ -19,5 +19,5 @@ type GroupCreate struct {
 
 type Group struct {
 	Number int              `json:"group_number"`
-	Team   []team.TeamGroup `json: "teams"`
+	Team   []team.TeamGroup `json:"teams"`
 }
