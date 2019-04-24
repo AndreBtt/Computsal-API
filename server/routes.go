@@ -508,6 +508,21 @@ func (a *App) getCaptain(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, cap)
 }
 
+func (a *App) getTeamCaptain(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	email := vars["email"]
+
+	var team captain.CaptainTeam
+	var err error
+
+	if team, err = captain.GetTeam(a.DB, email); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, team)
+}
+
 /* ---------------- TIMES ROUTES ----------------- */
 
 func (a *App) createTimes(w http.ResponseWriter, r *http.Request) {

@@ -10,3 +10,7 @@ type CaptainCreate struct {
 	PlayerID int    `json:"player_id"`
 	Email    string `json:"email"`
 }
+
+type CaptainTeam struct {
+	Team string `json:"team"`
+}

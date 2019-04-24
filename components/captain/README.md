@@ -10,3 +10,13 @@
             "email":        string
         }
     ```
+
+
+## Get team from captain email
+* HTTP Request : ```GET http://api.com/captainTeam/{email}```
+* Return an object in json format as follow
+    ``` 
+        {
+            "team":        string
+        }
+    ```

@@ -63,6 +63,7 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/scores", a.getScores).Methods("GET")
 
 	a.Router.HandleFunc("/captain/{teamName}", a.getCaptain).Methods("GET")
+	a.Router.HandleFunc("/captainTeam/{email}", a.getTeamCaptain).Methods("GET")
 
 	a.Router.HandleFunc("/times", a.getTimes).Methods("GET")
 	a.Router.HandleFunc("/times", a.createTimes).Methods("POST")
