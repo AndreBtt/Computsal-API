@@ -13,9 +13,10 @@ type TeamTable struct {
 }
 
 type TeamUpdate struct {
-	ID       int    `json:"id"`
-	Name     string `json:"name"`
-	PhotoURL string `json:"photo"`
+	ID       int                   `json:"id"`
+	Name     string                `json:"name"`
+	PhotoURL string                `json:"photo"`
+	Players  []player.PlayerUpdate `json:"players"`
 }
 
 type TeamCreate struct {

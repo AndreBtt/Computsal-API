@@ -50,6 +50,12 @@
             "id":        int,
             "name":      string,
             "photo":     string
+            "players": [
+                {  
+                    "id":       int,
+                    "name":     string 
+                },...
+            ]
         }
 ```
 * Even if you want to update just one field you need to fill all others in order to update team correctly

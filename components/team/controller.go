@@ -70,8 +70,10 @@ func (t *TeamUpdate) UpdateTeam(db *sql.DB) error {
 			photo = '%s'
 		WHERE
 			id = %d`, t.Name, t.PhotoURL, t.ID)
-	_, err := db.Exec(statement)
-	return err
+	if _, err := db.Exec(statement); err != nil {
+		return err
+	}
+	return player.UpdatePlayers(db, t.Players)
 }
 
 func DeleteTeam(db *sql.DB, teamID int) error {
