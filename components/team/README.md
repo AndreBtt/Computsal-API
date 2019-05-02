@@ -37,8 +37,7 @@
 * http StatusCreated (201) will be sent if the team has been created correctly
 
 ## Delete a team
-* HTTP Request : ```DELETE http://api.com/teams/{name}```
-* Name is the team's name you want to delete
+* HTTP Request : ```DELETE http://api.com/teams/{id}```
 * All players from this team will also be deleted
 * http StatusOK (200) will be sent if the team has been deleted correctly
 
