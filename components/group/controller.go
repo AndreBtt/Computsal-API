@@ -53,14 +53,14 @@ func GetGroupsDetail(db *sql.DB) ([]Group, error) {
 }
 
 func UpdateGroup(db *sql.DB, groupID int, gp []GroupUpdateTeam) error {
-	var addTeam []string
-	var removeTeam []string
+	var addTeam []int
+	var removeTeam []int
 
 	for _, elem := range gp {
 		if elem.Action == 1 {
-			addTeam = append(addTeam, elem.Name)
+			addTeam = append(addTeam, elem.ID)
 		} else {
-			removeTeam = append(removeTeam, elem.Name)
+			removeTeam = append(removeTeam, elem.ID)
 		}
 	}
 
@@ -68,7 +68,7 @@ func UpdateGroup(db *sql.DB, groupID int, gp []GroupUpdateTeam) error {
 	if len(addTeam) > 0 {
 		statement := fmt.Sprintf("UPDATE team SET group_number = %d WHERE", groupID)
 		for _, elem := range addTeam {
-			query := fmt.Sprintf(" name = '%s' OR", elem)
+			query := fmt.Sprintf(" id = %d OR", elem)
 			statement += query
 		}
 
@@ -83,7 +83,7 @@ func UpdateGroup(db *sql.DB, groupID int, gp []GroupUpdateTeam) error {
 	if len(removeTeam) > 0 {
 		statement := fmt.Sprintf("UPDATE team SET group_number = %d WHERE", -1)
 		for _, elem := range removeTeam {
-			query := fmt.Sprintf(" name = '%s' OR", elem)
+			query := fmt.Sprintf(" id = %d OR", elem)
 			statement += query
 		}
 
