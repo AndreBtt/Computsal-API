@@ -38,6 +38,7 @@ func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/teams", a.getTeams).Methods("GET")
 	a.Router.HandleFunc("/teams", a.createTeam).Methods("POST")
 	a.Router.HandleFunc("/teams", a.updateTeam).Methods("PUT")
+	a.Router.HandleFunc("/teams", a.deleteTeams).Methods("DELETE")
 	a.Router.HandleFunc("/teams/{id}", a.deleteTeam).Methods("DELETE")
 	a.Router.HandleFunc("/teams/{teamName}", a.getTeam).Methods("GET")
 

@@ -41,6 +41,16 @@
 * All players from this team will also be deleted
 * http StatusOK (200) will be sent if the team has been deleted correctly
 
+## Delete teams
+* HTTP Request : ```DELETE http://api.com/teams```
+* All players from the teams will also be deleted
+* Send team's data in the request body in the follow format
+``` 
+    [id, id, ...]
+```
+* Where id is the team's ID
+* http StatusOK (200) will be sent if the teams have been deleted correctly
+
 ## Update team
 * HTTP Request : ```PUT http://api.com/teams```
 * Send team's data in the request body in the follow format

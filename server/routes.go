@@ -152,6 +152,23 @@ func (a *App) deleteTeam(w http.ResponseWriter, r *http.Request) {
 	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
 }
 
+func (a *App) deleteTeams(w http.ResponseWriter, r *http.Request) {
+	var ids []int
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&ids); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := team.DeleteTeams(a.DB, ids); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, map[string]string{"result": "success"})
+}
+
 func (a *App) updateTeam(w http.ResponseWriter, r *http.Request) {
 	var t team.TeamUpdate
 	decoder := json.NewDecoder(r.Body)

@@ -86,6 +86,26 @@ func DeleteTeam(db *sql.DB, teamID int) error {
 	return err
 }
 
+func DeleteTeams(db *sql.DB, teamsID []int) error {
+	if len(teamsID) == 0 {
+		return nil
+	}
+
+	statement := fmt.Sprintf(`
+		DELETE FROM
+			team 
+		WHERE`)
+
+	for _, elem := range teamsID {
+		values := fmt.Sprintf(" id = %d or", elem)
+		statement += values
+	}
+	statement = statement[:len(statement)-2]
+
+	_, err := db.Exec(statement)
+	return err
+}
+
 func GetTeams(db *sql.DB) ([]TeamTable, error) {
 	statement := fmt.Sprintf("SELECT id, name, photo, group_number FROM team")
 	rows, err := db.Query(statement)
