@@ -13,10 +13,6 @@ type GroupUpdateTeam struct {
 	Action int `json:"action"`
 }
 
-type GroupCreate struct {
-	Name string `json:"team_name"`
-}
-
 type Group struct {
 	Number int              `json:"group_number"`
 	Team   []team.TeamGroup `json:"teams"`

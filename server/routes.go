@@ -473,15 +473,15 @@ func (a *App) deleteGroup(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) createGroup(w http.ResponseWriter, r *http.Request) {
-	teams := []group.GroupCreate{}
+	var teamsID []int
 	decoder := json.NewDecoder(r.Body)
-	if err := decoder.Decode(&teams); err != nil {
+	if err := decoder.Decode(&teamsID); err != nil {
 		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
 		return
 	}
 	defer r.Body.Close()
 
-	if err := group.CreateGroup(a.DB, teams); err != nil {
+	if err := group.CreateGroup(a.DB, teamsID); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}

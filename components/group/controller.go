@@ -128,7 +128,7 @@ func DeleteGroup(db *sql.DB, groupID int) error {
 	return tx.Commit()
 }
 
-func CreateGroup(db *sql.DB, teams []GroupCreate) error {
+func CreateGroup(db *sql.DB, teamsID []int) error {
 	// search for the correct group number
 	groups, err := GetGroups(db)
 	if err != nil {
@@ -143,8 +143,8 @@ func CreateGroup(db *sql.DB, teams []GroupCreate) error {
 	}
 
 	statement := fmt.Sprintf("UPDATE team SET group_number = %d WHERE", groupNumber)
-	for _, elem := range teams {
-		query := fmt.Sprintf(" name = '%s' OR", elem.Name)
+	for _, elem := range teamsID {
+		query := fmt.Sprintf(" id = %d OR", elem)
 		statement += query
 	}
 

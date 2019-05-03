@@ -45,16 +45,17 @@
 ``` 
     [
         {  
-            "team_name":     string,
+            "id":     int,
             "action":   int
         },...
     ]
 ```
 * Action is 1 if you want to add the team in the group or 0 if you want to delete the team from the group
+* ID is the team ID
 * http StatusCreated (201) will be sent if the group has been updated correctly
 
 ## Delete a group
-* HTTP Request : ```DELETE http://api.com/group/{groupNumber}```
+* HTTP Request : ```DELETE http://api.com/groups/{groupNumber}```
 * http StatusOK (200) will be sent if the group has been deleted correctly
 
 ## Create a group
