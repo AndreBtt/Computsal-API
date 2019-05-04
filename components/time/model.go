@@ -10,7 +10,7 @@ type TimeDelete struct {
 
 type TimeTable struct {
 	ID   int    `json:"id"`
-	Time string `json: "time"`
+	Time string `json:"time"`
 }
 
 // Action 0 if want to delete time
