@@ -12,5 +12,5 @@ type CaptainCreate struct {
 }
 
 type CaptainTeam struct {
-	Team string `json:"team"`
+	TeamID int `json:"team_id"`
 }

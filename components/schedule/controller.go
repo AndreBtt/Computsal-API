@@ -5,8 +5,21 @@ import (
 	"fmt"
 )
 
-func GetAvailableTimes(db *sql.DB, teamName string) ([]TimeAvailable, error) {
-	statement := fmt.Sprintf(`
+func GetAvailableTimes(db *sql.DB, teamID int) ([]TimeAvailable, error) {
+
+	statement := fmt.Sprintf(`SELECT
+			name
+		FROM
+			team
+		WHERE id = %d`, teamID)
+
+	var teamName string
+
+	if err := db.QueryRow(statement).Scan(&teamName); err != nil {
+		return nil, err
+	}
+
+	statement = fmt.Sprintf(`
 		SELECT
 			time.id AS id,
 			time.time AS time,
@@ -40,7 +53,7 @@ func GetAvailableTimes(db *sql.DB, teamName string) ([]TimeAvailable, error) {
 	return times, nil
 }
 
-func UpdateSchedule(db *sql.DB, schedules []TimeUpdate, teamName string) error {
+func UpdateSchedule(db *sql.DB, schedules []TimeUpdate, teamID int) error {
 	var available, notAvailable []TimeUpdate
 
 	for _, elem := range schedules {
@@ -49,6 +62,18 @@ func UpdateSchedule(db *sql.DB, schedules []TimeUpdate, teamName string) error {
 		} else {
 			notAvailable = append(notAvailable, elem)
 		}
+	}
+
+	statement := fmt.Sprintf(`SELECT
+			name
+		FROM
+			team
+		WHERE id = %d`, teamID)
+
+	var teamName string
+
+	if err := db.QueryRow(statement).Scan(&teamName); err != nil {
+		return err
 	}
 
 	if err := createNotAvailableTime(db, notAvailable, teamName); err != nil {

@@ -24,9 +24,16 @@ func (cap *CaptainCreate) CreateCaptain(db *sql.DB) error {
 }
 
 func GetTeam(db *sql.DB, captainEmail string) (CaptainTeam, error) {
-	statement := fmt.Sprintf("SELECT fk_captain_team as team FROM captain WHERE user_email = '%s'", captainEmail)
+	statement := fmt.Sprintf(`SELECT 
+			team.id
+		FROM
+			team
+		INNER JOIN 
+			captain
+				ON captain.fk_captain_team = team.name
+		WHERE captain.user_email = '%s'`, captainEmail)
 	var t CaptainTeam
-	if err := db.QueryRow(statement).Scan(&t.Team); err != nil {
+	if err := db.QueryRow(statement).Scan(&t.TeamID); err != nil {
 		return t, err
 	}
 	return t, nil

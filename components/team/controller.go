@@ -133,7 +133,6 @@ func (teamDetails *Team) GetTeam(db *sql.DB) error {
 			team.name,
 			team.photo,
 			team.group_number,
-			team.id,
 			COALESCE(next_match.fk_next_team1, "flag_no_team") AS team1,
 			COALESCE(next_match.fk_next_team2, "flag_no_team") AS team2,
 			COALESCE(time.time, "00:00:00") AS time,
@@ -153,11 +152,11 @@ func (teamDetails *Team) GetTeam(db *sql.DB) error {
 				player
 					ON player.id = captain.fk_captain_player
 		WHERE 
-			team.name = '%s'`, teamDetails.Name)
+			team.id = %d`, teamDetails.ID)
 
 	var team1, team2 string
 	if err := db.QueryRow(statement).Scan(&teamDetails.Name, &teamDetails.PhotoURL,
-		&teamDetails.Group, &teamDetails.ID, &team1, &team2,
+		&teamDetails.Group, &team1, &team2,
 		&teamDetails.NextMatch.Time, &teamDetails.CaptainName); err != nil {
 		return err
 	}

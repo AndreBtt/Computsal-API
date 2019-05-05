@@ -71,8 +71,8 @@
 * http StatusCreated (201) will be sent if the team has been updated correctly
 
 ## Get a team
-* HTTP Request : ```GET http://api.com/teams/{teamName}```
-* teamName is the team's name you want to get information
+* HTTP Request : ```GET http://api.com/teams/{id}```
+* id is the team's id you want to get information
 * Return a object in json format as follow
     ``` 
         {

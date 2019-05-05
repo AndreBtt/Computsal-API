@@ -17,6 +17,6 @@
 * Return an object in json format as follow
     ``` 
         {
-            "team":        string
+            "team_id":        int
         }
     ```

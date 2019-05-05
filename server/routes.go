@@ -202,11 +202,15 @@ func (a *App) getTeams(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) getTeam(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	teamName := vars["teamName"]
+	teamID, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid team ID")
+		return
+	}
 
-	teamDetails := team.Team{Name: teamName}
+	teamDetails := team.Team{ID: teamID}
 
-	err := teamDetails.GetTeam(a.DB)
+	err = teamDetails.GetTeam(a.DB)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -594,9 +598,13 @@ func (a *App) updateDeleteTimes(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) getTeamSchedule(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	teamName := vars["teamName"]
+	teamID, err := strconv.Atoi(vars["teamID"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid team ID")
+		return
+	}
 
-	times, err := schedule.GetAvailableTimes(a.DB, teamName)
+	times, err := schedule.GetAvailableTimes(a.DB, teamID)
 	if err != nil {
 		switch err {
 		case sql.ErrNoRows:
@@ -611,7 +619,11 @@ func (a *App) getTeamSchedule(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) updateTeamSchedule(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	teamName := vars["teamName"]
+	teamID, err := strconv.Atoi(vars["teamID"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid team ID")
+		return
+	}
 
 	schedules := []schedule.TimeUpdate{}
 	decoder := json.NewDecoder(r.Body)
@@ -621,7 +633,7 @@ func (a *App) updateTeamSchedule(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	if err := schedule.UpdateSchedule(a.DB, schedules, teamName); err != nil {
+	if err := schedule.UpdateSchedule(a.DB, schedules, teamID); err != nil {
 		respondWithError(w, http.StatusInternalServerError, err.Error())
 		return
 	}
