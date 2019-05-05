@@ -7,13 +7,15 @@
     ``` 
     [
         {
-            "id":        int,    
-            "team1":     string, 
-            "team2":     string,
-            "photo1":    string, 
-            "photo2":    string, 
-            "type":      int,    
-            "time":      time    
+            "id":           int,    
+            "team1":        string, 
+            "team2":        string,
+            "team1_id":     int,
+            "team2_id":     int,
+            "photo1":       string, 
+            "photo2":       string,
+            "type":         int,    
+            "time":         time    
         },...
     ]
     ```

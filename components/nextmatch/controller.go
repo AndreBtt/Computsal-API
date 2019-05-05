@@ -557,7 +557,7 @@ func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
 	// group phase matches
 	if len(matches) == 0 || matches[0].Type == 0 {
 		// add photo to team1 and team2
-		statement = fmt.Sprintf("SELECT name, photo FROM team")
+		statement = fmt.Sprintf("SELECT name, photo, id FROM team")
 		rows, err = db.Query(statement)
 		if err != nil {
 			return nil, err
@@ -565,15 +565,18 @@ func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
 
 		for rows.Next() {
 			var tName, tPhoto string
-			if err := rows.Scan(&tName, &tPhoto); err != nil {
+			var tID int
+			if err := rows.Scan(&tName, &tPhoto, &tID); err != nil {
 				return nil, err
 			}
 			for i, elem := range matches {
 				if elem.Team1 == tName {
 					matches[i].Photo1 = tPhoto
+					matches[i].ID1 = tID
 				}
 				if elem.Team2 == tName {
 					matches[i].Photo2 = tPhoto
+					matches[i].ID2 = tID
 				}
 			}
 		}
@@ -631,8 +634,8 @@ func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
 		return matches[i].Time < matches[j].Time
 	})
 
-	// add photo to team1 and team2
-	statement = fmt.Sprintf("SELECT name, photo FROM team")
+	// add photo and ID to team1 and team2
+	statement = fmt.Sprintf("SELECT name, photo, id FROM team")
 	rows, err = db.Query(statement)
 	if err != nil {
 		return nil, err
@@ -640,15 +643,18 @@ func GetNextMatches(db *sql.DB) ([]NextMatchList, error) {
 
 	for rows.Next() {
 		var tName, tPhoto string
-		if err := rows.Scan(&tName, &tPhoto); err != nil {
+		var tID int
+		if err := rows.Scan(&tName, &tPhoto, &tID); err != nil {
 			return nil, err
 		}
 		for i, elem := range matches {
 			if elem.Team1 == tName {
 				matches[i].Photo1 = tPhoto
+				matches[i].ID1 = tID
 			}
 			if elem.Team2 == tName {
 				matches[i].Photo2 = tPhoto
+				matches[i].ID2 = tID
 			}
 		}
 	}
