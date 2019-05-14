@@ -124,13 +124,46 @@ func UpdateScores(db *sql.DB, matchID int, scores []PlayerIDScore) error {
 	}
 
 	if len(updateScores) > 0 {
+		statement := fmt.Sprintf(`
+		SELECT
+			id, fk_score_player, fk_score_match, quantity, yellow, red
+		FROM
+			player_match
+		WHERE
+			fk_score_match = %d`, matchID)
+
+		rows, err := db.Query(statement)
+
+		if err != nil {
+			return err
+		}
+
+		matchScores := []PlayerScoreTable{}
+
+		for rows.Next() {
+			var p PlayerScoreTable
+			if err := rows.Scan(&p.ID, &p.PlayerID, &p.MatchID, &p.Quantity, &p.Yellow, &p.Red); err != nil {
+				return err
+			}
+			matchScores = append(matchScores, p)
+		}
+		rows.Close()
+
 		tx, err := db.Begin()
 		if err != nil {
 			return err
 		}
 
 		for _, elem := range updateScores {
-			statement := fmt.Sprintf(`
+			exist := false
+			for _, scores := range matchScores {
+				if elem.ID == scores.PlayerID {
+					exist = true
+				}
+			}
+
+			if exist {
+				statement := fmt.Sprintf(`
 				UPDATE
 					player_match
 				SET
@@ -142,12 +175,27 @@ func UpdateScores(db *sql.DB, matchID int, scores []PlayerIDScore) error {
 					fk_score_match = %d
 				`, elem.Score, elem.Yellow, elem.Red, elem.ID, matchID)
 
-			if _, err := tx.Exec(statement); err != nil {
-				if rollbackErr := tx.Rollback(); rollbackErr != nil {
-					return rollbackErr
+				if _, err := tx.Exec(statement); err != nil {
+					if rollbackErr := tx.Rollback(); rollbackErr != nil {
+						return rollbackErr
+					}
+					return err
 				}
-				return err
+			} else {
+				statement := fmt.Sprintf(`
+				INSERT INTO 
+					player_match(fk_score_player, fk_score_match, quantity, yellow, red)
+				VALUES
+					(%d, %d, %d, %d, %d)`, elem.ID, matchID, elem.Score, elem.Yellow, elem.Red)
+
+				if _, err := tx.Exec(statement); err != nil {
+					if rollbackErr := tx.Rollback(); rollbackErr != nil {
+						return rollbackErr
+					}
+					return err
+				}
 			}
+
 		}
 
 		if err := tx.Commit(); err != nil {

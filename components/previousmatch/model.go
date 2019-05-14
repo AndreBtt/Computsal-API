@@ -44,6 +44,8 @@ type PreviousMatch struct {
 	ID          int                 `json:"id"`
 	Team1       string              `json:"team1"`
 	Team2       string              `json:"team2"`
+	Team1ID     int                 `json:"team1_id"`
+	Team2ID     int                 `json:"team2_id"`
 	Photo1      string              `json:"photo1"`
 	Photo2      string              `json:"photo2"`
 	YellowCard1 int                 `json:"yellowCard1"`

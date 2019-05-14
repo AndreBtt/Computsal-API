@@ -324,7 +324,6 @@ func (a *App) updatePreviousMatch(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Invalid match ID")
 		return
 	}
-
 	ps := []score.PlayerIDScore{}
 	decoder := json.NewDecoder(r.Body)
 	if err := decoder.Decode(&ps); err != nil {

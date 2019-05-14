@@ -238,8 +238,8 @@ func (matchDetails *PreviousMatch) GetPreviousMatch(db *sql.DB) error {
 		}
 	}
 
-	// add photo to team1 and team2
-	statement = fmt.Sprintf("SELECT name, photo FROM team")
+	// add photo and id to team1 and team2
+	statement = fmt.Sprintf("SELECT id, name, photo FROM team")
 	rows, err = db.Query(statement)
 	if err != nil {
 		return err
@@ -247,16 +247,19 @@ func (matchDetails *PreviousMatch) GetPreviousMatch(db *sql.DB) error {
 
 	for rows.Next() {
 		var tName, tPhoto string
-		if err := rows.Scan(&tName, &tPhoto); err != nil {
+		var tID int
+		if err := rows.Scan(&tID, &tName, &tPhoto); err != nil {
 			return err
 		}
 
 		if matchDetails.Team1 == tName {
 			matchDetails.Photo1 = tPhoto
+			matchDetails.Team1ID = tID
 		}
 
 		if matchDetails.Team2 == tName {
 			matchDetails.Photo2 = tPhoto
+			matchDetails.Team2ID = tID
 		}
 	}
 	rows.Close()
@@ -502,7 +505,6 @@ func (match *NewMatch) createPreviousMatchElimination(db *sql.DB, matchDetails n
 	statement = generateStatement(match, matchID)
 	_, err = db.Exec(statement)
 	return err
-
 }
 
 func (match *NewMatch) createPreviousMatchGroup(db *sql.DB, matchDetails nextmatch.NextMatch) error {
